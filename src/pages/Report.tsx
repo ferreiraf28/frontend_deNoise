@@ -30,7 +30,7 @@ const Report = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/10 to-background p-6">
+    <div className="min-h-screen bg-background p-6">
       <div className="container mx-auto max-w-5xl">
         <div className="mb-6">
           <h1 className="text-4xl font-bold mb-2">Report Generator</h1>
@@ -41,8 +41,8 @@ const Report = () => {
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Configuration Panel */}
-          <Card className="lg:col-span-1 shadow-lg border-2 h-fit">
-            <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5">
+          <Card className="lg:col-span-1 shadow-soft border h-fit">
+            <CardHeader className="bg-muted/30">
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-primary" />
                 Configuration
@@ -100,8 +100,8 @@ const Report = () => {
           </Card>
 
           {/* Report Display */}
-          <Card className="lg:col-span-2 shadow-lg border-2">
-            <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 border-b">
+          <Card className="lg:col-span-2 shadow-soft border">
+            <CardHeader className="bg-muted/30 border-b">
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>Generated Report</CardTitle>

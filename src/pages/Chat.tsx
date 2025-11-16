@@ -42,7 +42,7 @@ const Chat = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/10 to-background p-6">
+    <div className="min-h-screen bg-background p-6">
       <div className="container mx-auto max-w-4xl">
         <div className="mb-6">
           <h1 className="text-4xl font-bold mb-2">Conversational Agent</h1>
@@ -51,8 +51,8 @@ const Chat = () => {
           </p>
         </div>
 
-        <Card className="shadow-lg border-2">
-          <CardHeader className="border-b bg-gradient-to-r from-primary/5 to-accent/5">
+        <Card className="shadow-soft border">
+          <CardHeader className="border-b bg-muted/30">
             <CardTitle>Chat Interface</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -70,10 +70,10 @@ const Chat = () => {
                         className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                       >
                         <div
-                          className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                          className={`max-w-[80%] rounded-xl px-4 py-3 ${
                             message.role === "user"
-                              ? "bg-gradient-to-r from-primary to-primary-glow text-primary-foreground"
-                              : "bg-muted text-foreground border"
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted text-foreground"
                           }`}
                         >
                           <p className="text-sm leading-relaxed">{message.content}</p>
@@ -84,7 +84,7 @@ const Chat = () => {
                         <div className="ml-4 space-y-2">
                           <p className="text-xs font-semibold text-muted-foreground">Sources:</p>
                           {message.sources.map((source, sourceIndex) => (
-                            <Card key={sourceIndex} className="bg-secondary/50 border-l-4 border-primary">
+                            <Card key={sourceIndex} className="bg-muted border-l-2 border-primary">
                               <CardContent className="p-3">
                                 <p className="text-sm font-medium mb-1">{source.title}</p>
                                 <p className="text-xs text-muted-foreground">{source.snippet}</p>
@@ -100,7 +100,7 @@ const Chat = () => {
                   ))}
                   {isLoading && (
                     <div className="flex justify-start">
-                      <div className="bg-muted rounded-2xl px-4 py-3 border">
+                      <div className="bg-muted rounded-xl px-4 py-3">
                         <Loader2 className="h-5 w-5 animate-spin text-primary" />
                       </div>
                     </div>

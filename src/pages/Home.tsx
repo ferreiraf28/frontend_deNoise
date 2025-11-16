@@ -9,37 +9,34 @@ const features = [
     description: "Ask questions and get intelligent answers powered by our RAG pipeline with source citations.",
     icon: MessageSquare,
     link: "/chat",
-    color: "from-primary to-primary-glow",
   },
   {
     title: "Report Generator",
     description: "Generate personalized daily or weekly reports tailored to your interests and focus areas.",
     icon: FileText,
     link: "/report",
-    color: "from-accent to-primary",
   },
   {
     title: "Podcast Generator",
     description: "Transform curated news into engaging audio podcasts with custom instructions and themes.",
     icon: Mic,
     link: "/podcast",
-    color: "from-primary-glow to-accent",
   },
 ];
 
 const Home = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-16">
         {/* Hero Section */}
         <div className="text-center mb-16 space-y-6">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-secondary rounded-full text-sm font-medium text-secondary-foreground mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-secondary rounded-full text-sm font-medium text-foreground mb-4">
             <Sparkles className="h-4 w-4" />
             <span>AI-Powered Startup Ecosystem Intelligence</span>
           </div>
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-foreground">
             Welcome to{" "}
-            <span className="bg-gradient-to-r from-primary via-primary-glow to-accent bg-clip-text text-transparent">
+            <span className="text-primary">
               deNoise
             </span>
           </h1>
@@ -54,12 +51,11 @@ const Home = () => {
           {features.map((feature) => (
             <Card
               key={feature.title}
-              className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-primary/50 overflow-hidden"
+              className="group hover:shadow-lg transition-all duration-200 border hover:border-primary/50"
             >
-              <div className={`h-2 bg-gradient-to-r ${feature.color}`} />
               <CardHeader>
-                <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${feature.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                  <feature.icon className="h-6 w-6 text-white" />
+                <div className="w-12 h-12 rounded-lg bg-primary flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+                  <feature.icon className="h-6 w-6 text-primary-foreground" />
                 </div>
                 <CardTitle className="text-2xl">{feature.title}</CardTitle>
                 <CardDescription className="text-base">{feature.description}</CardDescription>
