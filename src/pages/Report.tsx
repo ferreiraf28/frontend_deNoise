@@ -1,0 +1,147 @@
+import { useState } from "react";
+import { FileText, Loader2, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { fetchNews, generateReport, ReportResult } from "@/services/api";
+import { toast } from "sonner";
+
+const Report = () => {
+  const [timeRange, setTimeRange] = useState<"daily" | "weekly">("daily");
+  const [instructions, setInstructions] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [report, setReport] = useState<ReportResult | null>(null);
+
+  const handleGenerateReport = async () => {
+    setIsLoading(true);
+    try {
+      const news = await fetchNews({ range: timeRange });
+      const result = await generateReport(news, instructions);
+      setReport(result);
+      toast.success("Report generated successfully!");
+    } catch (error) {
+      console.error("Error generating report:", error);
+      toast.error("Failed to generate report. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/10 to-background p-6">
+      <div className="container mx-auto max-w-5xl">
+        <div className="mb-6">
+          <h1 className="text-4xl font-bold mb-2">Report Generator</h1>
+          <p className="text-muted-foreground">
+            Generate personalized reports based on curated startup news tailored to your preferences.
+          </p>
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Configuration Panel */}
+          <Card className="lg:col-span-1 shadow-lg border-2 h-fit">
+            <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5">
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                Configuration
+              </CardTitle>
+              <CardDescription>Customize your report settings</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6 pt-6">
+              <div className="space-y-2">
+                <Label htmlFor="time-range">Time Range</Label>
+                <Select value={timeRange} onValueChange={(value: "daily" | "weekly") => setTimeRange(value)}>
+                  <SelectTrigger id="time-range">
+                    <SelectValue placeholder="Select time range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="daily">Daily Report</SelectItem>
+                    <SelectItem value="weekly">Weekly Report</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="instructions">Custom Instructions</Label>
+                <Textarea
+                  id="instructions"
+                  placeholder="E.g., Focus on deep tech startups in Europe, highlight funding rounds above $10M..."
+                  value={instructions}
+                  onChange={(e) => setInstructions(e.target.value)}
+                  rows={6}
+                  className="resize-none"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Add specific instructions to customize the report content
+                </p>
+              </div>
+
+              <Button
+                onClick={handleGenerateReport}
+                disabled={isLoading}
+                className="w-full"
+                size="lg"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <FileText className="mr-2 h-4 w-4" />
+                    Generate Report
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Report Display */}
+          <Card className="lg:col-span-2 shadow-lg border-2">
+            <CardHeader className="bg-gradient-to-r from-primary/5 to-accent/5 border-b">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Generated Report</CardTitle>
+                  <CardDescription>
+                    {report
+                      ? `Generated on ${new Date(report.generatedAt).toLocaleString()}`
+                      : "Your report will appear here"}
+                  </CardDescription>
+                </div>
+                {report && (
+                  <Button variant="outline" size="sm">
+                    <Download className="h-4 w-4 mr-2" />
+                    Export
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6">
+              {!report ? (
+                <div className="flex flex-col items-center justify-center h-[500px] text-center text-muted-foreground">
+                  <FileText className="h-16 w-16 mb-4 text-muted-foreground/50" />
+                  <p className="text-lg mb-2">No report generated yet</p>
+                  <p className="text-sm">Configure your settings and click Generate Report to start</p>
+                </div>
+              ) : (
+                <div className="prose prose-sm max-w-none">
+                  <div
+                    className="bg-secondary/30 rounded-lg p-6 min-h-[500px] whitespace-pre-wrap"
+                    dangerouslySetInnerHTML={{
+                      __html: report.content.replace(/\n/g, "<br />").replace(/^# (.+)$/gm, "<h1>$1</h1>").replace(/^## (.+)$/gm, "<h2>$1</h2>"),
+                    }}
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Report;
