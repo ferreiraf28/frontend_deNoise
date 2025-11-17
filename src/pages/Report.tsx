@@ -5,11 +5,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { fetchNews, generateReport, ReportResult } from "@/services/api";
+import { fetchNews, generateReport, ReportResult } from "@/services/api"; // Updated import
 import { toast } from "sonner";
 
 const Report = () => {
-  const [timeRange, setTimeRange] = useState<"daily" | "weekly">("daily");
+  const [timeRange, setTimeRange] = useState<"daily" | "weekly" | "monthly">("weekly");
   const [instructions, setInstructions] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [report, setReport] = useState<ReportResult | null>(null);
@@ -17,7 +17,10 @@ const Report = () => {
   const handleGenerateReport = async () => {
     setIsLoading(true);
     try {
-      const news = await fetchNews({ range: timeRange });
+      // Fetch the relevant news based on the selected time range and user instructions
+      const news = await fetchNews({ range: timeRange, instructions });
+
+      // Generate the report based on the fetched news and user instructions
       const result = await generateReport(news, instructions);
       setReport(result);
       toast.success("Report generated successfully!");
@@ -52,13 +55,17 @@ const Report = () => {
             <CardContent className="space-y-6 pt-6">
               <div className="space-y-2">
                 <Label htmlFor="time-range">Time Range</Label>
-                <Select value={timeRange} onValueChange={(value: "daily" | "weekly") => setTimeRange(value)}>
+                <Select
+                  value={timeRange}
+                  onValueChange={(value: "daily" | "weekly" | "monthly") => setTimeRange(value)}
+                >
                   <SelectTrigger id="time-range">
                     <SelectValue placeholder="Select time range" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="daily">Daily Report</SelectItem>
                     <SelectItem value="weekly">Weekly Report</SelectItem>
+                    <SelectItem value="monthly">Monthly Report</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -104,7 +111,7 @@ const Report = () => {
             <CardHeader className="bg-muted/30 border-b">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Generated Report</CardTitle>
+                  <CardTitle><span className="text-primary">deNoised</span> Report</CardTitle>
                   <CardDescription>
                     {report
                       ? `Generated on ${new Date(report.generatedAt).toLocaleString()}`

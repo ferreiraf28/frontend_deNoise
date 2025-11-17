@@ -4,37 +4,55 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { runRagPipeline, RagResult } from "@/services/api";
+import { fetchNews, generateAnswer } from "@/services/api"; // Updated import
 import { toast } from "sonner";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
-  sources?: RagResult["sources"];
+  sources?: Array<{
+    title: string;
+    snippet: string;
+    date: string;
+  }>;
 }
 
 const Chat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [timeWindow, setTimeWindow] = useState<"daily" | "weekly" | "monthly">("weekly");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
     const userMessage = input.trim();
-    setInput("");
+    setInput(""); // Clear the input field
     setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
     setIsLoading(true);
 
     try {
-      const result = await runRagPipeline(userMessage);
+      // Fetch the relevant news based on user input and time window
+      const news = await fetchNews({
+        range: timeWindow,
+        instructions: userMessage,
+      });
+
+      // Generate the assistant's response based on the fetched news and user input
+      const result = await generateAnswer(news, userMessage);
+
+      // Update the messages with the assistant's response and sources
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: result.answer, sources: result.sources },
+        {
+          role: "assistant",
+          content: result.answer, // The generated answer
+          sources: result.sources, // Display relevant news sources
+        },
       ]);
     } catch (error) {
-      console.error("Error running RAG pipeline:", error);
+      console.error("Error fetching news:", error);
       toast.error("Failed to get response. Please try again.");
     } finally {
       setIsLoading(false);
@@ -47,20 +65,22 @@ const Chat = () => {
         <div className="mb-6">
           <h1 className="text-4xl font-bold mb-2">Conversational Agent</h1>
           <p className="text-muted-foreground">
-            Ask questions about the startup ecosystem and get intelligent answers with source citations.
+            Ask for recent news on the startup ecosystem and get intelligent answers with source citations.
           </p>
         </div>
 
         <Card className="shadow-soft border">
           <CardHeader className="border-b bg-muted/30">
-            <CardTitle>Chat Interface</CardTitle>
+            <CardTitle>
+              Ask the <span className="text-primary">deNoiser</span>
+            </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <ScrollArea className="h-[500px] p-6">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
-                  <p className="text-lg mb-2">Start a conversation</p>
-                  <p className="text-sm">Ask me anything about the startup ecosystem</p>
+                  <p className="text-lg mb-2">What are you waiting for?</p>
+                  <p className="text-sm">e.g. "What are the latest updates on OpenAI?"</p>
                 </div>
               ) : (
                 <div className="space-y-6">

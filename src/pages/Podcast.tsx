@@ -6,14 +6,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { fetchNews, generatePodcastScript, generatePodcastAudio } from "@/services/api";
+import { fetchNews, generatePodcast } from "@/services/api"; // Updated import
 import { toast } from "sonner";
 
 const Podcast = () => {
-  const [timeWindow, setTimeWindow] = useState<"weekly" | "monthly">("weekly");
+  const [timeWindow, setTimeWindow] = useState<"daily" | "weekly" | "monthly">("weekly");
   const [instructions, setInstructions] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [script, setScript] = useState<string | null>(null); // Store the generated podcast script
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -22,12 +23,19 @@ const Podcast = () => {
   const handleGeneratePodcast = async () => {
     setIsLoading(true);
     try {
+      // Fetch the relevant news based on the time window and user instructions
       const news = await fetchNews({
-        range: timeWindow === "weekly" ? "weekly" : "monthly",
+        range: timeWindow,
+        instructions,
       });
-      const script = await generatePodcastScript(news, instructions);
-      const audio = await generatePodcastAudio(script);
-      setAudioUrl(audio);
+
+      // Generate both the script and the audio using the fetched news and instructions
+      const result = await generatePodcast(news, instructions);
+      
+      // Set the script and audio URL from the result
+      setScript(result.script);
+      setAudioUrl(result.audioUrl);
+
       toast.success("Podcast generated successfully!");
     } catch (error) {
       console.error("Error generating podcast:", error);
@@ -98,12 +106,13 @@ const Podcast = () => {
                 <Label htmlFor="time-window">Time Window</Label>
                 <Select
                   value={timeWindow}
-                  onValueChange={(value: "weekly" | "monthly") => setTimeWindow(value)}
+                  onValueChange={(value: "daily" | "weekly" | "monthly") => setTimeWindow(value)}
                 >
                   <SelectTrigger id="time-window">
                     <SelectValue placeholder="Select time window" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="daily">Last Day</SelectItem>
                     <SelectItem value="weekly">Last Week</SelectItem>
                     <SelectItem value="monthly">Last Month</SelectItem>
                   </SelectContent>
@@ -149,7 +158,7 @@ const Podcast = () => {
           {/* Audio Player */}
           <Card className="lg:col-span-2 shadow-soft border">
             <CardHeader className="bg-muted/30 border-b">
-              <CardTitle>Podcast Player</CardTitle>
+              <CardTitle><span className="text-primary">deNoised</span> Podcast</CardTitle>
               <CardDescription>
                 {audioUrl ? "Your podcast is ready to play" : "Your podcast will appear here"}
               </CardDescription>

@@ -74,30 +74,32 @@ const Home = () => {
 
         {/* Info Section */}
         <div className="bg-card rounded-2xl shadow-soft p-8 md:p-12 border">
-          <h2 className="text-3xl font-bold mb-6">What makes deNoise different?</h2>
+          <h2 className="text-3xl font-bold mb-6">
+            What makes <span className="text-primary">deNoise</span> different?
+          </h2>
           <div className="grid md:grid-cols-2 gap-8 text-muted-foreground">
-            <div>
+            <div className="bg-background p-6 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200">
               <h3 className="font-semibold text-foreground text-lg mb-3">Intelligent Curation</h3>
               <p>
                 Our advanced RAG pipeline filters through thousands of news sources to deliver only the most relevant
                 information for your specific interests and industry focus.
               </p>
             </div>
-            <div>
+            <div className="bg-background p-6 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200">
               <h3 className="font-semibold text-foreground text-lg mb-3">Personalized Insights</h3>
               <p>
                 Customize every feature with your own instructions to ensure the content matches your unique needs,
                 whether you're tracking deep tech, European startups, or specific sectors.
               </p>
             </div>
-            <div>
+            <div className="bg-background p-6 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200">
               <h3 className="font-semibold text-foreground text-lg mb-3">Multiple Formats</h3>
               <p>
                 Consume information in the way that works best for you - through conversational chat, structured
                 reports, or engaging audio podcasts.
               </p>
             </div>
-            <div>
+            <div className="bg-background p-6 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200">
               <h3 className="font-semibold text-foreground text-lg mb-3">Always Up-to-Date</h3>
               <p>
                 Stay current with daily, weekly, or monthly digests that keep you informed without overwhelming you
