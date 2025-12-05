@@ -6,15 +6,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { fetchNews, generatePodcast } from "@/services/api"; // Updated import
+import { fetchNews, generatePodcast } from "@/services/api";
 import { toast } from "sonner";
+import foxImage from "@/assets/fox.png";
 
 const Podcast = () => {
   const [timeWindow, setTimeWindow] = useState<"daily" | "weekly" | "monthly">("weekly");
-  const [instructions, setInstructions] = useState("");
+  const [topicInstructions, setTopicInstructions] = useState("");
+  const [structureInstructions, setStructureInstructions] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [script, setScript] = useState<string | null>(null); // Store the generated podcast script
+  const [script, setScript] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -23,16 +25,14 @@ const Podcast = () => {
   const handleGeneratePodcast = async () => {
     setIsLoading(true);
     try {
-      // Fetch the relevant news based on the time window and user instructions
+      const combinedInstructions = `Topics: ${topicInstructions}\n\nStructure/Length: ${structureInstructions}`;
       const news = await fetchNews({
         range: timeWindow,
-        instructions,
+        instructions: combinedInstructions,
       });
 
-      // Generate both the script and the audio using the fetched news and instructions
-      const result = await generatePodcast(news, instructions);
+      const result = await generatePodcast(news, combinedInstructions);
       
-      // Set the script and audio URL from the result
       setScript(result.script);
       setAudioUrl(result.audioUrl);
 
@@ -120,17 +120,32 @@ const Podcast = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="podcast-instructions">Custom Instructions</Label>
+                <Label htmlFor="topic-instructions">Topics to Cover</Label>
                 <Textarea
-                  id="podcast-instructions"
-                  placeholder="E.g., Focus on deep tech in Europe, conversational tone, include market analysis..."
-                  value={instructions}
-                  onChange={(e) => setInstructions(e.target.value)}
-                  rows={6}
+                  id="topic-instructions"
+                  placeholder="E.g., Focus on deep tech in Europe, AI breakthroughs, climate tech investments..."
+                  value={topicInstructions}
+                  onChange={(e) => setTopicInstructions(e.target.value)}
+                  rows={4}
                   className="resize-none"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Specify themes, tone, and focus areas for your podcast
+                  Specify the topics and themes for your podcast
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="structure-instructions">Podcast Structure & Length</Label>
+                <Textarea
+                  id="structure-instructions"
+                  placeholder="E.g., 10-minute episode, conversational tone, start with headlines then deep dive into top 3 stories, include market analysis..."
+                  value={structureInstructions}
+                  onChange={(e) => setStructureInstructions(e.target.value)}
+                  rows={4}
+                  className="resize-none"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Define the format, length, and structure
                 </p>
               </div>
 
@@ -166,15 +181,15 @@ const Podcast = () => {
             <CardContent className="pt-6">
               {!audioUrl ? (
                 <div className="flex flex-col items-center justify-center h-[400px] text-center text-muted-foreground">
-                  <Mic className="h-16 w-16 mb-4 text-muted-foreground/50" />
+                  <img src={foxImage} alt="deNoise" className="w-24 h-24 object-contain mb-4 opacity-50" />
                   <p className="text-lg mb-2">No podcast generated yet</p>
                   <p className="text-sm">Configure your settings and click Generate Podcast to start</p>
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {/* Album Art Placeholder */}
-                  <div className="aspect-square bg-gradient-to-br from-primary via-primary-glow to-accent rounded-2xl flex items-center justify-center shadow-lg">
-                    <Volume2 className="h-24 w-24 text-white/80" />
+                  {/* Album Art */}
+                  <div className="aspect-square max-w-xs mx-auto bg-primary rounded-2xl flex items-center justify-center shadow-lg">
+                    <img src={foxImage} alt="deNoise Podcast" className="w-32 h-32 object-contain" />
                   </div>
 
                   {/* Audio Controls */}

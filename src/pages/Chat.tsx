@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { fetchNews, generateAnswer } from "@/services/api"; // Updated import
+import { fetchNews, generateAnswer } from "@/services/api";
 import { toast } from "sonner";
+import foxImage from "@/assets/fox.png";
 
 interface Message {
   role: "user" | "assistant";
@@ -21,34 +22,31 @@ const Chat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [timeWindow, setTimeWindow] = useState<"daily" | "weekly" | "monthly">("weekly");
+  const [timeWindow] = useState<"daily" | "weekly" | "monthly">("weekly");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
     const userMessage = input.trim();
-    setInput(""); // Clear the input field
+    setInput("");
     setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
     setIsLoading(true);
 
     try {
-      // Fetch the relevant news based on user input and time window
       const news = await fetchNews({
         range: timeWindow,
         instructions: userMessage,
       });
 
-      // Generate the assistant's response based on the fetched news and user input
       const result = await generateAnswer(news, userMessage);
 
-      // Update the messages with the assistant's response and sources
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: result.answer, // The generated answer
-          sources: result.sources, // Display relevant news sources
+          content: result.answer,
+          sources: result.sources,
         },
       ]);
     } catch (error) {
@@ -60,95 +58,108 @@ const Chat = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="container mx-auto max-w-4xl">
-        <div className="mb-6">
-          <h1 className="text-4xl font-bold mb-2">Conversational Agent</h1>
-          <p className="text-muted-foreground">
-            Ask for recent news on the startup ecosystem and get intelligent answers with source citations.
+    <div className="h-[calc(100vh-3.5rem)] bg-background flex flex-col">
+      {/* Chat Header */}
+      <div className="border-b bg-muted/30 px-6 py-4 flex items-center gap-3">
+        <img src={foxImage} alt="deNoiser" className="w-10 h-10 object-contain" />
+        <div>
+          <h1 className="text-xl font-semibold">
+            The <span className="text-primary">deNoiser</span>
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Your AI assistant for startup ecosystem insights
           </p>
         </div>
+      </div>
 
-        <Card className="shadow-soft border">
-          <CardHeader className="border-b bg-muted/30">
-            <CardTitle>
-              Ask the <span className="text-primary">deNoiser</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <ScrollArea className="h-[500px] p-6">
-              {messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
-                  <p className="text-lg mb-2">What are you waiting for?</p>
-                  <p className="text-sm">e.g. "What are the latest updates on OpenAI?"</p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {messages.map((message, index) => (
-                    <div key={index} className="space-y-3">
-                      <div
-                        className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-                      >
-                        <div
-                          className={`max-w-[80%] rounded-xl px-4 py-3 ${
-                            message.role === "user"
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-muted text-foreground"
-                          }`}
-                        >
-                          <p className="text-sm leading-relaxed">{message.content}</p>
-                        </div>
-                      </div>
-
-                      {message.sources && message.sources.length > 0 && (
-                        <div className="ml-4 space-y-2">
-                          <p className="text-xs font-semibold text-muted-foreground">Sources:</p>
-                          {message.sources.map((source, sourceIndex) => (
-                            <Card key={sourceIndex} className="bg-muted border-l-2 border-primary">
-                              <CardContent className="p-3">
-                                <p className="text-sm font-medium mb-1">{source.title}</p>
-                                <p className="text-xs text-muted-foreground">{source.snippet}</p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {new Date(source.date).toLocaleDateString()}
-                                </p>
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      )}
+      {/* Messages Area */}
+      <ScrollArea className="flex-1 px-4">
+        <div className="max-w-4xl mx-auto py-6">
+          {messages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-[50vh] text-center text-muted-foreground">
+              <img src={foxImage} alt="deNoiser" className="w-24 h-24 object-contain mb-6 opacity-60" />
+              <p className="text-xl mb-2 font-medium">Hey there! I'm the deNoiser 🦊</p>
+              <p className="text-sm max-w-md">
+                Ask me anything about the startup ecosystem and I'll find the most relevant news for you.
+              </p>
+              <p className="text-xs mt-4 text-muted-foreground/60">
+                e.g. "What are the latest updates on OpenAI?" or "Tell me about European climate tech funding"
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {messages.map((message, index) => (
+                <div key={index} className="space-y-3">
+                  <div
+                    className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                  >
+                    {message.role === "assistant" && (
+                      <img src={foxImage} alt="deNoiser" className="w-8 h-8 object-contain mr-3 mt-1" />
+                    )}
+                    <div
+                      className={`max-w-[75%] rounded-2xl px-4 py-3 ${
+                        message.role === "user"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-foreground"
+                      }`}
+                    >
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
                     </div>
-                  ))}
-                  {isLoading && (
-                    <div className="flex justify-start">
-                      <div className="bg-muted rounded-xl px-4 py-3">
-                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  </div>
+
+                  {message.sources && message.sources.length > 0 && (
+                    <div className="ml-11 space-y-2">
+                      <p className="text-xs font-semibold text-muted-foreground">Sources:</p>
+                      <div className="grid gap-2">
+                        {message.sources.map((source, sourceIndex) => (
+                          <Card key={sourceIndex} className="bg-muted/50 border-l-2 border-primary">
+                            <CardContent className="p-3">
+                              <p className="text-sm font-medium mb-1">{source.title}</p>
+                              <p className="text-xs text-muted-foreground line-clamp-2">{source.snippet}</p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {new Date(source.date).toLocaleDateString()}
+                              </p>
+                            </CardContent>
+                          </Card>
+                        ))}
                       </div>
                     </div>
                   )}
+                </div>
+              ))}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <img src={foxImage} alt="deNoiser" className="w-8 h-8 object-contain mr-3 mt-1" />
+                  <div className="bg-muted rounded-2xl px-4 py-3">
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  </div>
                 </div>
               )}
-            </ScrollArea>
+            </div>
+          )}
+        </div>
+      </ScrollArea>
 
-            <form onSubmit={handleSubmit} className="border-t p-4 bg-muted/30">
-              <div className="flex gap-2">
-                <Input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Type your message..."
-                  disabled={isLoading}
-                  className="flex-1"
-                />
-                <Button type="submit" disabled={isLoading || !input.trim()} size="icon">
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Send className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+      {/* Input Area */}
+      <div className="border-t bg-background p-4">
+        <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
+          <div className="flex gap-3">
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask the deNoiser anything about the startup ecosystem..."
+              disabled={isLoading}
+              className="flex-1 h-12 text-base"
+            />
+            <Button type="submit" disabled={isLoading || !input.trim()} size="lg" className="h-12 px-6">
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Send className="h-5 w-5" />
+              )}
+            </Button>
+          </div>
+        </form>
       </div>
     </div>
   );
