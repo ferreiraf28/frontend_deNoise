@@ -5,23 +5,22 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { fetchNews, generateReport, ReportResult } from "@/services/api"; // Updated import
+import { fetchNews, generateReport, ReportResult } from "@/services/api";
 import { toast } from "sonner";
 
 const Report = () => {
   const [timeRange, setTimeRange] = useState<"daily" | "weekly" | "monthly">("weekly");
-  const [instructions, setInstructions] = useState("");
+  const [topicInstructions, setTopicInstructions] = useState("");
+  const [structureInstructions, setStructureInstructions] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [report, setReport] = useState<ReportResult | null>(null);
 
   const handleGenerateReport = async () => {
     setIsLoading(true);
     try {
-      // Fetch the relevant news based on the selected time range and user instructions
-      const news = await fetchNews({ range: timeRange, instructions });
-
-      // Generate the report based on the fetched news and user instructions
-      const result = await generateReport(news, instructions);
+      const combinedInstructions = `Topics: ${topicInstructions}\n\nStructure: ${structureInstructions}`;
+      const news = await fetchNews({ range: timeRange, instructions: combinedInstructions });
+      const result = await generateReport(news, combinedInstructions);
       setReport(result);
       toast.success("Report generated successfully!");
     } catch (error) {
@@ -71,17 +70,32 @@ const Report = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="instructions">Custom Instructions</Label>
+                <Label htmlFor="topic-instructions">Topics to Include</Label>
                 <Textarea
-                  id="instructions"
-                  placeholder="E.g., Focus on deep tech startups in Europe, highlight funding rounds above $10M..."
-                  value={instructions}
-                  onChange={(e) => setInstructions(e.target.value)}
-                  rows={6}
+                  id="topic-instructions"
+                  placeholder="E.g., Focus on deep tech startups in Europe, highlight funding rounds above $10M, include AI and climate tech..."
+                  value={topicInstructions}
+                  onChange={(e) => setTopicInstructions(e.target.value)}
+                  rows={4}
                   className="resize-none"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Add specific instructions to customize the report content
+                  Specify the topics and themes you want covered
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="structure-instructions">Report Structure</Label>
+                <Textarea
+                  id="structure-instructions"
+                  placeholder="E.g., Executive summary first, then sector breakdown, include bullet points for key takeaways, end with market trends..."
+                  value={structureInstructions}
+                  onChange={(e) => setStructureInstructions(e.target.value)}
+                  rows={4}
+                  className="resize-none"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Define the sections and format of your report
                 </p>
               </div>
 
