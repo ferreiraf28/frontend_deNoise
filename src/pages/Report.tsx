@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { fetchNews, generateReport, ReportResult } from "@/services/api";
 import { toast } from "sonner";
+import foxImage from "@/assets/fox.png";
 
 const Report = () => {
   const [timeRange, setTimeRange] = useState<"daily" | "weekly" | "monthly">("weekly");
@@ -142,19 +143,28 @@ const Report = () => {
             </CardHeader>
             <CardContent className="pt-6">
               {!report ? (
-                <div className="flex flex-col items-center justify-center h-[500px] text-center text-muted-foreground">
-                  <FileText className="h-16 w-16 mb-4 text-muted-foreground/50" />
+                <div className="flex flex-col items-center justify-center h-[400px] text-center text-muted-foreground">
+                  <img src={foxImage} alt="deNoise" className="w-24 h-24 object-contain mb-4 opacity-50" />
                   <p className="text-lg mb-2">No report generated yet</p>
                   <p className="text-sm">Configure your settings and click Generate Report to start</p>
                 </div>
               ) : (
-                <div className="prose prose-sm max-w-none">
-                  <div
-                    className="bg-secondary/30 rounded-lg p-6 min-h-[500px] whitespace-pre-wrap"
-                    dangerouslySetInnerHTML={{
-                      __html: report.content.replace(/\n/g, "<br />").replace(/^# (.+)$/gm, "<h1>$1</h1>").replace(/^## (.+)$/gm, "<h2>$1</h2>"),
-                    }}
-                  />
+                <div className="space-y-6">
+                  <div className="aspect-square max-w-xs mx-auto bg-primary rounded-2xl flex items-center justify-center shadow-lg">
+                    <img src={foxImage} alt="deNoise Report" className="w-32 h-32 object-contain" />
+                  </div>
+
+                  <div className="prose prose-sm max-w-none">
+                    <div
+                      className="bg-secondary/30 rounded-lg p-6 min-h-[500px] whitespace-pre-wrap"
+                      dangerouslySetInnerHTML={{
+                        __html: report.content
+                          .replace(/\n/g, "<br />")
+                          .replace(/^# (.+)$/gm, "<h1>$1</h1>")
+                          .replace(/^## (.+)$/gm, "<h2>$1</h2>"),
+                      }}
+                    />
+                  </div>
                 </div>
               )}
             </CardContent>

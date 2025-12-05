@@ -139,11 +139,11 @@ const Profile = () => {
             </CardHeader>
             <CardContent className="pt-6">
               <Textarea
-                placeholder="E.g., I'm interested in European deep tech startups, particularly in AI and climate tech. I prefer detailed analysis over brief summaries. Focus on Series A and B funding rounds..."
+                placeholder="E.g., I prefer objective and short answers..."
                 value={systemInstructions}
                 onChange={(e) => setSystemInstructions(e.target.value)}
-                rows={8}
-                className="resize-none"
+                rows={4}                            // reduce visible rows
+                className="resize-none h-40 max-h-60 overflow-auto" // set fixed height + scroll
               />
               <p className="text-xs text-muted-foreground mt-2">
                 These instructions help tailor all generated content to your specific interests and role.

@@ -83,7 +83,7 @@ const Chat = () => {
                 Ask me anything about the startup ecosystem and I'll find the most relevant news for you.
               </p>
               <p className="text-xs mt-4 text-muted-foreground/60">
-                e.g. "What are the latest updates on OpenAI?" or "Tell me about European climate tech funding"
+                e.g. "What are the latest updates on OpenAI?"
               </p>
             </div>
           ) : (

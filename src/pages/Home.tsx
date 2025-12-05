@@ -35,24 +35,24 @@ const Home = () => {
         <div className="container mx-auto px-4 py-16">
           {/* Hero Section */}
           <div className="text-center mb-16 space-y-6">
-            <div className="flex justify-center mb-6">
-              <img 
-                src={foxImage} 
-                alt="deNoise Fox Mascot" 
-                className="w-32 h-32 object-contain animate-bounce"
-                style={{ animationDuration: "3s" }}
-              />
-            </div>
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-secondary rounded-full text-sm font-medium text-foreground mb-4">
               <Sparkles className="h-4 w-4" />
               <span>AI-Powered Startup Ecosystem Intelligence</span>
             </div>
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-foreground">
-              Welcome to{" "}
-              <span className="text-primary">
-                deNoise
-              </span>
-            </h1>
+            <div className="flex items-center justify-center gap-6">
+              <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-foreground">
+                Welcome to{" "}
+                <span className="text-primary">
+                  deNoise
+                </span>
+              </h1>
+              <img 
+                src={foxImage} 
+                alt="deNoise Fox Mascot" 
+                className="w-32 h-32 object-contain animate-bounce flex-shrink-0"
+                style={{ animationDuration: "3s" }}
+              />
+            </div>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
               Stay ahead in the startup ecosystem with AI-curated news and insights tailored specifically for
               entrepreneurship hubs, investors, and innovation enthusiasts.
@@ -60,7 +60,7 @@ const Home = () => {
             {!user && (
               <div className="flex justify-center gap-4 pt-4">
                 <Link to="/auth">
-                  <Button size="lg">Get Started</Button>
+                  <Button size="lg">Log-in here</Button>
                 </Link>
               </div>
             )}
@@ -140,13 +140,13 @@ const Home = () => {
               <div>
                 <h3 className="font-bold text-xl">deNoise</h3>
                 <p className="text-primary-foreground/80 text-sm">
-                  Cutting through the noise, one startup at a time 🦊
+                  Cutting through the noise, one newsletter at a time
                 </p>
               </div>
             </div>
             <div className="text-center md:text-right">
               <p className="text-sm text-primary-foreground/90 mb-2">
-                Built with 💡 by 4 Data Science students passionate about innovation
+                Built by 4 Data Science students passionate about innovation
               </p>
               <a 
                 href="mailto:klferreira28@gmail.com" 
