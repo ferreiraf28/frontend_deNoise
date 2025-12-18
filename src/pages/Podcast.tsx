@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { generatePodcast, getPodcastDownloadUrl } from "@/services/api";
+import { generatePodcast } from "@/services/api";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import foxImage from "@/assets/fox.png";
@@ -18,7 +18,6 @@ const Podcast = () => {
   const [structureInstructions, setStructureInstructions] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [script, setScript] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -40,13 +39,8 @@ const Podcast = () => {
         structure: structureInstructions.trim() || "interview_style",
         user_id: userId,
       });
-      
-      setScript(result.script);
-      // Handle the audio URL from backend
-      const fullAudioUrl = result.audio_url.startsWith('http') 
-        ? result.audio_url 
-        : getPodcastDownloadUrl(result.audio_url.split('/').pop() || '');
-      setAudioUrl(fullAudioUrl);
+
+      setAudioUrl(result.audio_url);
 
       toast.success("Podcast generated successfully!");
     } catch (error) {

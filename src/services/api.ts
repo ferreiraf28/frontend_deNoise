@@ -37,7 +37,6 @@ export interface PodcastRequest {
 }
 
 export interface PodcastResponse {
-  script: string;
   audio_url: string;
   timestamp: string;
 }
@@ -122,10 +121,6 @@ export async function generatePodcast(request: PodcastRequest): Promise<PodcastR
     body: JSON.stringify(request),
   });
   return handleResponse<PodcastResponse>(response);
-}
-
-export function getPodcastDownloadUrl(filename: string): string {
-  return `${API_BASE_URL}/api/podcast/download/${filename}`;
 }
 
 // ============================================================================
