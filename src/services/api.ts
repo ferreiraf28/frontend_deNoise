@@ -1,146 +1,148 @@
-// Placeholder API functions for deNoise
-export interface NewsItem {
-  id: string;
-  title: string;
-  text: string;
-  date: string;
+// API service layer for deNoise FastAPI backend
+// Configure this URL for your Render deployment
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+
+// ============================================================================
+// Types
+// ============================================================================
+
+export interface ChatRequest {
+  prompt: string;
+  user_id: string;
 }
 
-// Report result structure
-export interface ReportResult {
-  content: string;
-  generatedAt: string;
+export interface ChatResponse {
+  response: string;
+  timestamp: string;
 }
 
-// Podcast result structure
-export interface PodcastResult {
+export interface ReportRequest {
+  topics: string;
+  time_range: string;
+  structure: string;
+  user_id: string;
+}
+
+export interface ReportResponse {
+  report: string;
+  timestamp: string;
+}
+
+export interface PodcastRequest {
+  topics: string;
+  time_range: string;
+  structure: string;
+  user_id: string;
+}
+
+export interface PodcastResponse {
   script: string;
-  audioUrl: string;
+  audio_url: string;
+  timestamp: string;
 }
 
-// Response result structure (for chatbot answers)
-export interface ResponseResult {
-  answer: string;
-  sources?: Array<{
-    title: string;
-    snippet: string;
-    date: string;
-  }>;
+export interface UserProfile {
+  user_id: string;
+  email: string;
+  display_name: string;
+  system_instructions: string;
 }
 
+export interface HealthResponse {
+  status: string;
+  version: string;
+  timestamp: string;
+}
 
-// Function to fetch news based on time window and custom instructions
-export const fetchNews = async (params: {
-  range: "daily" | "weekly" | "monthly"; // Time window
-  instructions: string; // Instructions (e.g., user query or focus)
-}): Promise<NewsItem[]> => {
-  console.log("Fetching news with params:", params);
+// ============================================================================
+// Helper Functions
+// ============================================================================
 
-  const mockNewsData: NewsItem[] = [
-    {
-      id: "1",
-      title: "Sample News Article",
-      text: "This is a placeholder news article that will be replaced with real data.",
-      date: new Date().toISOString(),
-    },
-  ];
-
-  try {
-    // Call the backend to fetch the news (RAG logic will be handled in the backend)
-    const response = await fetch(`/api/news?range=${params.range}&instructions=${encodeURIComponent(params.instructions)}`);
-    
-    // If the response is not OK, return mock data
-    if (!response.ok) {
-      console.log("API call failed. Returning mock data.");
-      return mockNewsData;
-    }
-
-    // If successful, return the fetched news data
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    // In case of any error, return mock data
-    console.error("Error fetching news:", error);
-    console.log("Returning mock data.");
-    return mockNewsData;
+async function handleResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ detail: "Unknown error" }));
+    throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
   }
-};
+  return response.json();
+}
 
+// ============================================================================
+// Health Check
+// ============================================================================
 
+export async function checkHealth(): Promise<HealthResponse> {
+  const response = await fetch(`${API_BASE_URL}/health`);
+  return handleResponse<HealthResponse>(response);
+}
 
+// ============================================================================
+// Chat API
+// ============================================================================
 
-// Mock Function to generate the answer based on fetched news and user instructions
-export const generateAnswer = async (
-  news: NewsItem[], // Fetched news
-  userInstructions: string // User's custom instructions (e.g., query or context)
-): Promise<ResponseResult> => {
-  console.log("Generating answer with news:", news.length, "articles");
-  console.log("User instructions:", userInstructions);
+export async function sendChatMessage(prompt: string, userId: string): Promise<ChatResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/chat`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt, user_id: userId }),
+  });
+  return handleResponse<ChatResponse>(response);
+}
 
-  // Simulate answer generation (this is where the answer is generated on the backend)
-  await new Promise((resolve) => setTimeout(resolve, 1500));
+export async function clearChatSession(userId: string): Promise<{ status: string; message: string }> {
+  const response = await fetch(`${API_BASE_URL}/api/chat/clear`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId }),
+  });
+  return handleResponse<{ status: string; message: string }>(response);
+}
 
-  // Generate the answer (this can be more sophisticated using an LLM)
-  const answer = `Here's the answer based on the news articles: ${news[0]?.title}`;
+// ============================================================================
+// Report API
+// ============================================================================
 
-  // Return the generated answer and sources (if available)
-  return {
-    answer: answer,
-    sources: news.map((item) => ({
-      title: item.title,
-      snippet: item.text,
-      date: item.date,
-    })),
-  };
-};
+export async function generateReport(request: ReportRequest): Promise<ReportResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/report`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+  return handleResponse<ReportResponse>(response);
+}
 
+// ============================================================================
+// Podcast API
+// ============================================================================
 
+export async function generatePodcast(request: PodcastRequest): Promise<PodcastResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/podcast/generate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+  return handleResponse<PodcastResponse>(response);
+}
 
+export function getPodcastDownloadUrl(filename: string): string {
+  return `${API_BASE_URL}/api/podcast/download/${filename}`;
+}
 
-// Mock Function to generate a report based on fetched news
-export const generateReport = async (
-  news: NewsItem[], // Fetched news
-  userInstructions: string // User's custom instructions (e.g., focus areas)
-): Promise<ReportResult> => {
-  console.log("Generating report with news:", news.length, "articles");
-  console.log("User instructions:", userInstructions);
+// ============================================================================
+// User Profile API
+// ============================================================================
 
-  // Generate a string containing the content of all news articles
-  const newsContent = news.map((item) => {
-    return `## ${item.title}\n\n${item.text}\n\nDate: ${new Date(item.date).toLocaleDateString()}\n`;
-  }).join("\n");
+export async function getUserInstructions(userId: string): Promise<{ user_id: string; instructions: string }> {
+  const response = await fetch(`${API_BASE_URL}/api/user/${userId}/instructions`);
+  return handleResponse<{ user_id: string; instructions: string }>(response);
+}
 
-  // Simulate report generation (this is where the report is generated on the backend)
-  await new Promise((resolve) => setTimeout(resolve, 2000));
-
-  return {
-    content: `# Mock Report\n\nThis is a generated report based on ${news.length} news articles.\n\nNews:\n\n${newsContent}\n\nUser instructions: ${userInstructions}`,
-    generatedAt: new Date().toISOString(),
-  };
-};
-
-
-
-
-// Mock Unified function to generate both podcast script and audio
-export const generatePodcast = async (
-  news: NewsItem[], // Fetched news
-  userInstructions: string // User's custom instructions (e.g., tone, focus)
-): Promise<PodcastResult> => {
-  console.log("Generating podcast script and audio with news:", news.length, "articles");
-  console.log("User instructions:", userInstructions);
-
-  // Simulate podcast script and audio generation (this is where the backend processes it)
-  await new Promise((resolve) => setTimeout(resolve, 3000));
-
-  // Generate a script for the podcast
-  const script = `This is a placeholder podcast script based on the news articles: ${news[0]?.title}. The actual implementation will generate a dynamic script based on the user instructions.`;
-
-  // Generate audio URL (this can be replaced with actual audio generation)
-  const audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"; // Placeholder audio URL
-
-  return {
-    script: script,
-    audioUrl: audioUrl,
-  };
-};
+// Note: Profile sync endpoint would be added when CosmosDB service is fully implemented
+export async function syncUserProfile(profile: UserProfile): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/user/profile`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(profile),
+  });
+  return handleResponse<void>(response);
+}

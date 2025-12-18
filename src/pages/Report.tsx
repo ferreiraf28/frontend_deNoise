@@ -5,24 +5,45 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { fetchNews, generateReport, ReportResult } from "@/services/api";
+import { generateReport } from "@/services/api";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import foxImage from "@/assets/fox.png";
 
+interface ReportResult {
+  content: string;
+  generatedAt: string;
+}
+
 const Report = () => {
-  const [timeRange, setTimeRange] = useState<"daily" | "weekly" | "monthly">("weekly");
+  const { user } = useAuth();
+  const [timeRange, setTimeRange] = useState<string>("last_7_days");
   const [topicInstructions, setTopicInstructions] = useState("");
   const [structureInstructions, setStructureInstructions] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [report, setReport] = useState<ReportResult | null>(null);
 
+  const userId = user?.id || "anonymous";
+
   const handleGenerateReport = async () => {
+    if (!topicInstructions.trim()) {
+      toast.error("Please enter topics to generate a report");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const combinedInstructions = `Topics: ${topicInstructions}\n\nStructure: ${structureInstructions}`;
-      const news = await fetchNews({ range: timeRange, instructions: combinedInstructions });
-      const result = await generateReport(news, combinedInstructions);
-      setReport(result);
+      const result = await generateReport({
+        topics: topicInstructions.trim(),
+        time_range: timeRange,
+        structure: structureInstructions.trim() || "executive_summary",
+        user_id: userId,
+      });
+      
+      setReport({
+        content: result.report,
+        generatedAt: result.timestamp,
+      });
       toast.success("Report generated successfully!");
     } catch (error) {
       console.error("Error generating report:", error);
@@ -57,15 +78,15 @@ const Report = () => {
                 <Label htmlFor="time-range">Time Range</Label>
                 <Select
                   value={timeRange}
-                  onValueChange={(value: "daily" | "weekly" | "monthly") => setTimeRange(value)}
+                  onValueChange={setTimeRange}
                 >
                   <SelectTrigger id="time-range">
                     <SelectValue placeholder="Select time range" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="daily">Daily Report</SelectItem>
-                    <SelectItem value="weekly">Weekly Report</SelectItem>
-                    <SelectItem value="monthly">Monthly Report</SelectItem>
+                    <SelectItem value="last_24_hours">Daily Report</SelectItem>
+                    <SelectItem value="last_7_days">Weekly Report</SelectItem>
+                    <SelectItem value="last_month">Monthly Report</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -102,7 +123,7 @@ const Report = () => {
 
               <Button
                 onClick={handleGenerateReport}
-                disabled={isLoading}
+                disabled={isLoading || !topicInstructions.trim()}
                 className="w-full"
                 size="lg"
               >

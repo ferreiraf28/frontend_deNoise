@@ -1,17 +1,19 @@
 import { useState, useRef } from "react";
-import { Mic, Loader2, Play, Pause, Volume2 } from "lucide-react";
+import { Mic, Loader2, Play, Pause } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { fetchNews, generatePodcast } from "@/services/api";
+import { generatePodcast, getPodcastDownloadUrl } from "@/services/api";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import foxImage from "@/assets/fox.png";
 
 const Podcast = () => {
-  const [timeWindow, setTimeWindow] = useState<"daily" | "weekly" | "monthly">("weekly");
+  const { user } = useAuth();
+  const [timeWindow, setTimeWindow] = useState<string>("last_7_days");
   const [topicInstructions, setTopicInstructions] = useState("");
   const [structureInstructions, setStructureInstructions] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -22,19 +24,29 @@ const Podcast = () => {
   const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const userId = user?.id || "anonymous";
+
   const handleGeneratePodcast = async () => {
+    if (!topicInstructions.trim()) {
+      toast.error("Please enter topics to generate a podcast");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const combinedInstructions = `Topics: ${topicInstructions}\n\nStructure/Length: ${structureInstructions}`;
-      const news = await fetchNews({
-        range: timeWindow,
-        instructions: combinedInstructions,
+      const result = await generatePodcast({
+        topics: topicInstructions.trim(),
+        time_range: timeWindow,
+        structure: structureInstructions.trim() || "interview_style",
+        user_id: userId,
       });
-
-      const result = await generatePodcast(news, combinedInstructions);
       
       setScript(result.script);
-      setAudioUrl(result.audioUrl);
+      // Handle the audio URL from backend
+      const fullAudioUrl = result.audio_url.startsWith('http') 
+        ? result.audio_url 
+        : getPodcastDownloadUrl(result.audio_url.split('/').pop() || '');
+      setAudioUrl(fullAudioUrl);
 
       toast.success("Podcast generated successfully!");
     } catch (error) {
@@ -106,15 +118,15 @@ const Podcast = () => {
                 <Label htmlFor="time-window">Time Window</Label>
                 <Select
                   value={timeWindow}
-                  onValueChange={(value: "daily" | "weekly" | "monthly") => setTimeWindow(value)}
+                  onValueChange={setTimeWindow}
                 >
                   <SelectTrigger id="time-window">
                     <SelectValue placeholder="Select time window" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="daily">Last Day</SelectItem>
-                    <SelectItem value="weekly">Last Week</SelectItem>
-                    <SelectItem value="monthly">Last Month</SelectItem>
+                    <SelectItem value="last_24_hours">Last Day</SelectItem>
+                    <SelectItem value="last_7_days">Last Week</SelectItem>
+                    <SelectItem value="last_month">Last Month</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -151,7 +163,7 @@ const Podcast = () => {
 
               <Button
                 onClick={handleGeneratePodcast}
-                disabled={isLoading}
+                disabled={isLoading || !topicInstructions.trim()}
                 className="w-full"
                 size="lg"
               >

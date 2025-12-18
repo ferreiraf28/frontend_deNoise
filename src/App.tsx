@@ -18,7 +18,6 @@ const queryClient = new QueryClient();
 
 const AppContent = () => {
   const location = useLocation();
-  const isHomePage = location.pathname === "/";
   const isAuthPage = location.pathname === "/auth";
 
   // Don't show sidebar on auth page
