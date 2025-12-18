@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { getUserInstructions } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import foxImage from "@/assets/fox.png";
 
 const Profile = () => {
-  const { user, loading: authLoading, signOut } = useAuth();
+  const { user, loading: authLoading, signOut, updateProfile } = useAuth();
   const navigate = useNavigate();
   const [displayName, setDisplayName] = useState("");
   const [systemInstructions, setSystemInstructions] = useState("");
@@ -30,19 +30,19 @@ const Profile = () => {
       if (!user) return;
 
       try {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("user_id", user.id)
-          .single();
-
-        if (error && error.code !== "PGRST116") {
-          console.error("Error fetching profile:", error);
-        }
-
-        if (data) {
-          setDisplayName(data.display_name || "");
-          setSystemInstructions(data.system_instructions || "");
+        // Load from local user state first
+        setDisplayName(user.display_name || "");
+        setSystemInstructions(user.system_instructions || "");
+        
+        // Try to fetch from backend (CosmosDB)
+        try {
+          const data = await getUserInstructions(user.id);
+          if (data.instructions) {
+            setSystemInstructions(data.instructions);
+          }
+        } catch {
+          // Backend not available yet, use local state
+          console.log("Backend not available, using local state");
         }
       } catch (error) {
         console.error("Error:", error);
@@ -59,15 +59,15 @@ const Profile = () => {
 
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          display_name: displayName,
-          system_instructions: systemInstructions,
-        })
-        .eq("user_id", user.id);
-
-      if (error) throw error;
+      // Update local state
+      updateProfile({
+        display_name: displayName,
+        system_instructions: systemInstructions,
+      });
+      
+      // TODO: Sync with backend when CosmosDB endpoint is ready
+      // await syncUserProfile({ user_id: user.id, email: user.email, display_name: displayName, system_instructions: systemInstructions });
+      
       toast.success("Profile updated successfully!");
     } catch (error) {
       console.error("Error saving profile:", error);
@@ -142,8 +142,8 @@ const Profile = () => {
                 placeholder="E.g., I prefer objective and short answers..."
                 value={systemInstructions}
                 onChange={(e) => setSystemInstructions(e.target.value)}
-                rows={4}                            // reduce visible rows
-                className="resize-none h-40 max-h-60 overflow-auto" // set fixed height + scroll
+                rows={4}
+                className="resize-none h-40 max-h-60 overflow-auto"
               />
               <p className="text-xs text-muted-foreground mt-2">
                 These instructions help tailor all generated content to your specific interests and role.

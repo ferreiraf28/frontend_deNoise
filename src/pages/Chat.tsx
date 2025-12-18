@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Send, Loader2 } from "lucide-react";
+import { Send, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { fetchNews, generateAnswer } from "@/services/api";
+import { sendChatMessage, clearChatSession } from "@/services/api";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import foxImage from "@/assets/fox.png";
 
@@ -19,10 +20,13 @@ interface Message {
 }
 
 const Chat = () => {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [timeWindow] = useState<"daily" | "weekly" | "monthly">("weekly");
+  const [isClearing, setIsClearing] = useState(false);
+
+  const userId = user?.id || "anonymous";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,42 +38,67 @@ const Chat = () => {
     setIsLoading(true);
 
     try {
-      const news = await fetchNews({
-        range: timeWindow,
-        instructions: userMessage,
-      });
-
-      const result = await generateAnswer(news, userMessage);
-
+      const result = await sendChatMessage(userMessage, userId);
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: result.answer,
-          sources: result.sources,
+          content: result.response,
         },
       ]);
     } catch (error) {
-      console.error("Error fetching news:", error);
+      console.error("Error sending message:", error);
       toast.error("Failed to get response. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleClearChat = async () => {
+    if (isClearing) return;
+    
+    setIsClearing(true);
+    try {
+      await clearChatSession(userId);
+      setMessages([]);
+      toast.success("Chat cleared");
+    } catch (error) {
+      console.error("Error clearing chat:", error);
+      toast.error("Failed to clear chat");
+    } finally {
+      setIsClearing(false);
+    }
+  };
+
   return (
     <div className="h-[calc(100vh-3.5rem)] bg-background flex flex-col">
       {/* Chat Header */}
-      <div className="border-b bg-muted/30 px-6 py-4 flex items-center gap-3">
-        <img src={foxImage} alt="deNoiser" className="w-10 h-10 object-contain" />
-        <div>
-          <h1 className="text-xl font-semibold">
-            The <span className="text-primary">deNoiser</span>
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Your AI assistant for startup ecosystem insights
-          </p>
+      <div className="border-b bg-muted/30 px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <img src={foxImage} alt="deNoiser" className="w-10 h-10 object-contain" />
+          <div>
+            <h1 className="text-xl font-semibold">
+              The <span className="text-primary">deNoiser</span>
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Your AI assistant for startup ecosystem insights
+            </p>
+          </div>
         </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleClearChat}
+          disabled={isClearing || messages.length === 0}
+          className="text-muted-foreground hover:text-foreground"
+        >
+          {isClearing ? (
+            <Loader2 className="h-4 w-4 animate-spin mr-1" />
+          ) : (
+            <Trash2 className="h-4 w-4 mr-1" />
+          )}
+          Clear Chat
+        </Button>
       </div>
 
       {/* Messages Area */}

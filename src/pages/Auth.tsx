@@ -38,11 +38,7 @@ const Auth = () => {
       } else {
         const { error } = await signUp(email, password);
         if (error) {
-          if (error.message.includes("already registered")) {
-            toast.error("This email is already registered. Please sign in.");
-          } else {
-            toast.error(error.message);
-          }
+          toast.error(error.message);
         } else {
           toast.success("Account created successfully!");
           navigate("/");
