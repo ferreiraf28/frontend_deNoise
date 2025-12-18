@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { FileText, Loader2, Download } from "lucide-react";
+import ReactMarkdown from "react-markdown"; 
+import html2pdf from "html2pdf.js"; 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,11 +19,13 @@ interface ReportResult {
 
 const Report = () => {
   const { user } = useAuth();
-  const [timeRange, setTimeRange] = useState<string>("last_7_days");
+  const [timeRange, setTimeRange] = useState<string>("weekly");
   const [topicInstructions, setTopicInstructions] = useState("");
   const [structureInstructions, setStructureInstructions] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [report, setReport] = useState<ReportResult | null>(null);
+
+  const reportContentRef = useRef<HTMLDivElement>(null);
 
   const userId = user?.id || "anonymous";
 
@@ -51,6 +55,22 @@ const Report = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleExportPdf = () => {
+    const element = reportContentRef.current;
+    if (!element) return;
+
+    const opt: any = {
+      margin:       [0.5, 0.5],
+      filename:     `denoised_report_${new Date().toISOString().split('T')[0]}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).save();
+    toast.success("Downloading report...");
   };
 
   return (
@@ -84,9 +104,9 @@ const Report = () => {
                     <SelectValue placeholder="Select time range" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="last_24_hours">Daily Report</SelectItem>
-                    <SelectItem value="last_7_days">Weekly Report</SelectItem>
-                    <SelectItem value="last_month">Monthly Report</SelectItem>
+                    <SelectItem value="daily">Daily Report</SelectItem>
+                    <SelectItem value="weekly">Weekly Report</SelectItem>
+                    <SelectItem value="monthly">Monthly Report</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -155,7 +175,7 @@ const Report = () => {
                   </CardDescription>
                 </div>
                 {report && (
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={handleExportPdf}>
                     <Download className="h-4 w-4 mr-2" />
                     Export
                   </Button>
@@ -171,20 +191,30 @@ const Report = () => {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  <div className="aspect-square max-w-xs mx-auto bg-primary rounded-2xl flex items-center justify-center shadow-lg">
-                    <img src={foxImage} alt="deNoise Report" className="w-32 h-32 object-contain" />
-                  </div>
-
-                  <div className="prose prose-sm max-w-none">
-                    <div
-                      className="bg-secondary/30 rounded-lg p-6 min-h-[500px] whitespace-pre-wrap"
-                      dangerouslySetInnerHTML={{
-                        __html: report.content
-                          .replace(/\n/g, "<br />")
-                          .replace(/^# (.+)$/gm, "<h1>$1</h1>")
-                          .replace(/^## (.+)$/gm, "<h2>$1</h2>"),
-                      }}
-                    />
+                  {/* The report container */}
+                  <div 
+                    ref={reportContentRef} 
+                    className="bg-secondary/30 rounded-lg p-6 min-h-[500px]"
+                  >
+                    <div className="prose max-w-none dark:prose-invert">
+                      <ReactMarkdown
+                        components={{
+                          // H1 ( # Title )
+                          h1: ({...props}) => <h1 className="text-3xl font-bold mt-6 mb-4 text-primary" {...props} />,
+                          // H2 ( ## Section )
+                          h2: ({...props}) => <h2 className="text-2xl font-semibold mt-6 mb-3 text-foreground border-b pb-2" {...props} />,
+                          // H3 ( ### Subsection / Key Takeaways ) -> This fixes your specific issue
+                          h3: ({...props}) => <h3 className="text-xl font-bold mt-5 mb-2 text-foreground" {...props} />,
+                          // Bold Text ( **text** )
+                          strong: ({...props}) => <strong className="font-bold text-foreground" {...props} />,
+                          // Lists
+                          ul: ({...props}) => <ul className="list-disc pl-5 space-y-2 my-4" {...props} />,
+                          li: ({...props}) => <li className="pl-1" {...props} />,
+                        }}
+                      >
+                        {report.content}
+                      </ReactMarkdown>
+                    </div>
                   </div>
                 </div>
               )}

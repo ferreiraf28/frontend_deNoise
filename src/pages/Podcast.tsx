@@ -13,7 +13,7 @@ import foxImage from "@/assets/fox.png";
 
 const Podcast = () => {
   const { user } = useAuth();
-  const [timeWindow, setTimeWindow] = useState<string>("last_7_days");
+  const [timeWindow, setTimeWindow] = useState<string>("monthly");
   const [topicInstructions, setTopicInstructions] = useState("");
   const [structureInstructions, setStructureInstructions] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -118,9 +118,9 @@ const Podcast = () => {
                     <SelectValue placeholder="Select time window" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="last_24_hours">Last Day</SelectItem>
-                    <SelectItem value="last_7_days">Last Week</SelectItem>
-                    <SelectItem value="last_month">Last Month</SelectItem>
+                    <SelectItem value="daily">Last Day</SelectItem>
+                    <SelectItem value="weekly">Last Week</SelectItem>
+                    <SelectItem value="monthly">Last Month</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
