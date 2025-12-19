@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Mic, Loader2, Play, Pause } from "lucide-react";
+import { Mic, Loader2, Play, Pause, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,6 +51,21 @@ const Podcast = () => {
     }
   };
 
+  // --- NEW DOWNLOAD FUNCTION ---
+  const handleDownloadMp3 = () => {
+    if (!audioUrl) return;
+
+    // Create a temporary link element to trigger the download
+    const link = document.createElement("a");
+    link.href = audioUrl;
+    link.download = `denoised_podcast_${new Date().toISOString().split('T')[0]}.mp3`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success("Downloading podcast MP3...");
+  };
+
   const togglePlayPause = () => {
     if (audioRef.current) {
       if (isPlaying) {
@@ -82,6 +97,7 @@ const Podcast = () => {
   };
 
   const formatTime = (time: number) => {
+    if (!time || isNaN(time)) return "0:00";
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
@@ -178,11 +194,24 @@ const Podcast = () => {
 
           {/* Audio Player */}
           <Card className="lg:col-span-2 shadow-soft border">
+            {/* UPDATED HEADER: Matches Report.tsx Layout */}
             <CardHeader className="bg-muted/30 border-b">
-              <CardTitle><span className="text-primary">deNoised</span> Podcast</CardTitle>
-              <CardDescription>
-                {audioUrl ? "Your podcast is ready to play" : "Your podcast will appear here"}
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle><span className="text-primary">deNoised</span> Podcast</CardTitle>
+                  <CardDescription>
+                    {audioUrl ? "Your podcast is ready to play" : "Your podcast will appear here"}
+                  </CardDescription>
+                </div>
+                
+                {/* Download Button - Identical styling to Report Export Button */}
+                {audioUrl && (
+                  <Button variant="outline" size="sm" onClick={handleDownloadMp3}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Download MP3
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="pt-6">
               {!audioUrl ? (
@@ -217,7 +246,7 @@ const Podcast = () => {
                       <Button
                         onClick={togglePlayPause}
                         size="lg"
-                        className="rounded-full w-16 h-16"
+                        className="rounded-full w-16 h-16 shadow-lg hover:scale-105 transition-transform"
                       >
                         {isPlaying ? (
                           <Pause className="h-6 w-6" />
