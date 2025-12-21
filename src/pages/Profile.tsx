@@ -14,38 +14,45 @@ import foxImage from "@/assets/fox.png";
 const Profile = () => {
   const { user, loading: authLoading, signOut, updateProfile } = useAuth();
   const navigate = useNavigate();
+  
   const [displayName, setDisplayName] = useState("");
   const [systemInstructions, setSystemInstructions] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  
+  // Loading states
+  const [loading, setLoading] = useState(true); // For fetching initial data
+  const [saving, setSaving] = useState(false);  // For saving changes
 
+  // 1. Auth Guard: Redirect if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/auth");
     }
   }, [user, authLoading, navigate]);
 
+  // 2. Fetch Data on Load
   useEffect(() => {
     const fetchProfile = async () => {
       if (!user) return;
 
       try {
-        // Load from local user state first
+        // A. Start with local defaults (fastest)
         setDisplayName(user.display_name || "");
         setSystemInstructions(user.system_instructions || "");
         
-        // Try to fetch from backend (CosmosDB)
+        // B. Try to fetch fresh data from Backend (CosmosDB)
         try {
           const data = await getUserInstructions(user.id);
-          if (data.instructions) {
-            setSystemInstructions(data.instructions);
-          }
-        } catch {
-          // Backend not available yet, use local state
-          console.log("Backend not available, using local state");
+          
+          // Update state if we got fresh data
+          // We use || "" to ensure the input never becomes uncontrolled
+          setSystemInstructions(data.instructions || "");
+          setDisplayName(data.display_name || "");
+          
+        } catch (apiError) {
+          console.log("Backend sync skipped or failed, using local state:", apiError);
         }
       } catch (error) {
-        console.error("Error:", error);
+        console.error("Error initializing profile:", error);
       } finally {
         setLoading(false);
       }
@@ -54,22 +61,24 @@ const Profile = () => {
     fetchProfile();
   }, [user]);
 
+  // 3. Handle Save
   const handleSave = async () => {
     if (!user) return;
 
     setSaving(true);
     try {
-      // Update local state
-      await updateProfile({
-        display_name: displayName,
-        system_instructions: systemInstructions,
-      });
-      
+      // A. Update Backend
       await syncUserProfile({ 
         user_id: user.id, 
         email: user.email, 
         display_name: displayName, 
         system_instructions: systemInstructions 
+      });
+      
+      // B. Update Local Context
+      await updateProfile({
+        display_name: displayName,
+        system_instructions: systemInstructions,
       });
       
       toast.success("Profile updated successfully!");
@@ -81,11 +90,13 @@ const Profile = () => {
     }
   };
 
+  // 4. Handle Sign Out
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
   };
 
+  // Loading Spinner
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -97,6 +108,7 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="container mx-auto max-w-2xl">
+        {/* Page Header */}
         <div className="mb-6">
           <h1 className="text-4xl font-bold mb-2">My Profile</h1>
           <p className="text-muted-foreground">
@@ -105,10 +117,12 @@ const Profile = () => {
         </div>
 
         <div className="space-y-6">
+          
+          {/* Card 1: Account Details */}
           <Card className="shadow-soft border">
             <CardHeader className="bg-muted/30">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center border">
                   <img src={foxImage} alt="Profile" className="w-12 h-12 object-contain" />
                 </div>
                 <div>
@@ -125,7 +139,7 @@ const Profile = () => {
                 <Label htmlFor="displayName">Display Name</Label>
                 <Input
                   id="displayName"
-                  placeholder="Your name"
+                  placeholder="What should we call you?"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                 />
@@ -133,6 +147,7 @@ const Profile = () => {
             </CardContent>
           </Card>
 
+          {/* Card 2: Custom Instructions */}
           <Card className="shadow-soft border">
             <CardHeader className="bg-muted/30">
               <CardTitle>Custom System Instructions</CardTitle>
@@ -155,7 +170,8 @@ const Profile = () => {
             </CardContent>
           </Card>
 
-          <div className="flex gap-4">
+          {/* Action Buttons */}
+          <div className="flex gap-4 pt-2">
             <Button onClick={handleSave} disabled={saving} className="flex-1">
               {saving ? (
                 <>

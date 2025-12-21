@@ -202,7 +202,7 @@ const Podcast = () => {
             <CardHeader className="bg-muted/30 border-b">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle><span className="text-primary">deNoised</span> Podcast</CardTitle>
+                  <CardTitle><span className="text-primary">deNoised</span> Signal</CardTitle>
                   <CardDescription>
                     {audioUrl ? "Your podcast is ready to play" : "Your podcast will appear here"}
                   </CardDescription>

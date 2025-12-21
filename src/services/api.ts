@@ -52,6 +52,12 @@ export interface UserProfileRequest {
   system_instructions: string;
 }
 
+export interface ShortUserProfileResponse {
+  user_id: string;
+  instructions: string;
+  display_name: string;
+}
+
 export interface HealthResponse {
   status: string;
   version: string;
@@ -131,9 +137,14 @@ export async function generatePodcast(request: PodcastRequest): Promise<PodcastR
 // User Profile API
 // ============================================================================
 
-export async function getUserInstructions(userId: string): Promise<{ user_id: string; instructions: string }> {
-  const response = await fetch(`${API_BASE_URL}/api/user/${userId}/instructions`);
-  return handleResponse<{ user_id: string; instructions: string }>(response);
+export async function getUserInstructions(userId: string): Promise<ShortUserProfileResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/user/${userId}/instructions`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  // Now it returns the full object { user_id, instructions, display_name }
+  return handleResponse<ShortUserProfileResponse>(response);
 }
 
 export async function syncUserProfile(profile: UserProfileRequest): Promise<void> {
