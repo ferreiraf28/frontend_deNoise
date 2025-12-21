@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { getUserInstructions } from "@/services/api";
+import { getUserInstructions, syncUserProfile } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -60,13 +60,17 @@ const Profile = () => {
     setSaving(true);
     try {
       // Update local state
-      updateProfile({
+      await updateProfile({
         display_name: displayName,
         system_instructions: systemInstructions,
       });
       
-      // TODO: Sync with backend when CosmosDB endpoint is ready
-      // await syncUserProfile({ user_id: user.id, email: user.email, display_name: displayName, system_instructions: systemInstructions });
+      await syncUserProfile({ 
+        user_id: user.id, 
+        email: user.email, 
+        display_name: displayName, 
+        system_instructions: systemInstructions 
+      });
       
       toast.success("Profile updated successfully!");
     } catch (error) {

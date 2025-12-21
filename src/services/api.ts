@@ -17,6 +17,10 @@ export interface ChatResponse {
   timestamp: string;
 }
 
+export interface ClearSessionRequest {
+  user_id: string;
+}
+
 export interface ReportRequest {
   topics: string;
   time_range: string;
@@ -41,7 +45,7 @@ export interface PodcastResponse {
   timestamp: string;
 }
 
-export interface UserProfile {
+export interface UserProfileRequest {
   user_id: string;
   email: string;
   display_name: string;
@@ -132,8 +136,7 @@ export async function getUserInstructions(userId: string): Promise<{ user_id: st
   return handleResponse<{ user_id: string; instructions: string }>(response);
 }
 
-// Note: Profile sync endpoint would be added when CosmosDB service is fully implemented
-export async function syncUserProfile(profile: UserProfile): Promise<void> {
+export async function syncUserProfile(profile: UserProfileRequest): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/api/user/profile`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

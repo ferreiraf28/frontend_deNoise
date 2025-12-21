@@ -1,6 +1,8 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
+// 1. Import the API service to talk to the Backend
+import { syncUserProfile } from "@/services/api";
 
-// Simple user type for local auth (will be managed by CosmosDB via FastAPI)
+// Simple user type for local auth
 export interface User {
   id: string;
   email: string;
@@ -40,8 +42,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      // For now, simple local auth - will be replaced with CosmosDB auth via FastAPI
-      // Generate a consistent user ID from email
+      // Generate ID from email (Mock Logic)
       const userId = btoa(email).replace(/[^a-zA-Z0-9]/g, '').substring(0, 20);
       
       const newUser: User = {
@@ -60,8 +61,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signUp = async (email: string, password: string) => {
-    // Same as signIn for now - CosmosDB will handle actual user creation
-    return signIn(email, password);
+    // 2. Perform local sign-in logic first
+    const result = await signIn(email, password);
+    
+    // 3. If successful, SYNC with CosmosDB immediately
+    if (!result.error) {
+        // Re-generate ID to ensure we have it (or grab from result logic if refactored)
+        const userId = btoa(email).replace(/[^a-zA-Z0-9]/g, '').substring(0, 20);
+        
+        try {
+            await syncUserProfile({
+                user_id: userId,
+                email: email,
+                display_name: "", // Default empty
+                system_instructions: "" // Default empty
+            });
+            console.log("User synced to CosmosDB on signup");
+        } catch (err) {
+            console.error("Failed to sync new user to backend:", err);
+            // We don't block the UI flow here, just log the error
+        }
+    }
+
+    return result;
   };
 
   const signOut = async () => {
@@ -91,3 +113,11 @@ export const useAuth = () => {
   }
   return context;
 };
+
+
+
+/*
+TO DO:
+- Fazer com que o profile seja criado na base dados assim que acontece o log in ou sign up
+- adicionar função para conseguir dar display do nome no frontend (que neste momento nao ta a ir buscar) e passar o nome para o prompt assim como as custom instructions
+*/
