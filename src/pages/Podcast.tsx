@@ -9,6 +9,7 @@ import { Slider } from "@/components/ui/slider";
 import { generatePodcast } from "@/services/api";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { useGlobalState } from "@/context/GlobalStateContext";
 import foxImage from "@/assets/fox.png";
 
 const Podcast = () => {
@@ -17,7 +18,11 @@ const Podcast = () => {
   const [topicInstructions, setTopicInstructions] = useState("");
   const [structureInstructions, setStructureInstructions] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+
+  const { podcastData, setPodcastData } = useGlobalState();
+  const audioUrl = podcastData.audioUrl;
+  const setAudioUrl = (url: string | null) => setPodcastData({ audioUrl: url });
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -109,12 +114,11 @@ const Podcast = () => {
         <div className="mb-6">
           <h1 className="text-4xl font-bold mb-2">Podcast Generator</h1>
           <p className="text-muted-foreground">
-            Transform curated startup news into engaging audio podcasts with custom themes and focus areas.
+            Transform curated startup news into engaging audio podcasts with custom topics and focus areas.
           </p>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Configuration Panel */}
           <Card className="lg:col-span-1 shadow-soft border h-fit">
             <CardHeader className="bg-muted/30">
               <CardTitle className="flex items-center gap-2">
@@ -145,29 +149,29 @@ const Podcast = () => {
                 <Label htmlFor="topic-instructions">Topics to Cover</Label>
                 <Textarea
                   id="topic-instructions"
-                  placeholder="E.g., Focus on deep tech in Europe, AI breakthroughs, climate tech investments..."
+                  placeholder="E.g., Focus on AI news and market trends..."
                   value={topicInstructions}
                   onChange={(e) => setTopicInstructions(e.target.value)}
                   rows={4}
                   className="resize-none"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Specify the topics and themes for your podcast
+                  Specify the topics to cover on your podcast
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="structure-instructions">Podcast Structure & Length</Label>
+                <Label htmlFor="structure-instructions">Podcast Style & Structure</Label>
                 <Textarea
                   id="structure-instructions"
-                  placeholder="E.g., 10-minute episode, conversational tone, start with headlines then deep dive into top 3 stories, include market analysis..."
+                  placeholder="E.g. Exciting and informal tone, start with the headlines..."
                   value={structureInstructions}
                   onChange={(e) => setStructureInstructions(e.target.value)}
                   rows={4}
                   className="resize-none"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Define the format, length, and structure
+                  Define the format and structure
                 </p>
               </div>
 

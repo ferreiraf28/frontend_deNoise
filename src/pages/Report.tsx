@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useGlobalState } from "@/context/GlobalStateContext";
 import { FileText, Loader2, Download } from "lucide-react";
 import ReactMarkdown from "react-markdown"; 
 import html2pdf from "html2pdf.js"; 
@@ -23,7 +24,10 @@ const Report = () => {
   const [topicInstructions, setTopicInstructions] = useState("");
   const [structureInstructions, setStructureInstructions] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [report, setReport] = useState<ReportResult | null>(null);
+
+  const { reportData, setReportData } = useGlobalState();
+  const report = reportData;
+  const setReport = setReportData;
 
   const reportContentRef = useRef<HTMLDivElement>(null);
 
@@ -115,14 +119,14 @@ const Report = () => {
                 <Label htmlFor="topic-instructions">Topics to Include</Label>
                 <Textarea
                   id="topic-instructions"
-                  placeholder="E.g., Focus on deep tech startups in Europe, highlight funding rounds above $10M, include AI and climate tech..."
+                  placeholder="E.g., Focus on international news, specially funding rounds..."
                   value={topicInstructions}
                   onChange={(e) => setTopicInstructions(e.target.value)}
                   rows={4}
                   className="resize-none"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Specify the topics and themes you want covered
+                  Specify the topics you want covered
                 </p>
               </div>
 
@@ -130,7 +134,7 @@ const Report = () => {
                 <Label htmlFor="structure-instructions">Report Structure</Label>
                 <Textarea
                   id="structure-instructions"
-                  placeholder="E.g., Executive summary first, then sector breakdown, include bullet points for key takeaways, end with market trends..."
+                  placeholder="E.g., Executive summary first, then key takeaways with bullet points..."
                   value={structureInstructions}
                   onChange={(e) => setStructureInstructions(e.target.value)}
                   rows={4}

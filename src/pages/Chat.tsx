@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useGlobalState } from "@/context/GlobalStateContext";
 import { Send, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,19 +10,17 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import foxImage from "@/assets/fox.png";
 
-interface Message {
-  role: "user" | "assistant";
-  content: string;
-  sources?: Array<{
-    title: string;
-    snippet: string;
-    date: string;
-  }>;
-}
-
 const Chat = () => {
   const { user } = useAuth();
-  const [messages, setMessages] = useState<Message[]>([]);
+
+  // 1. CONNECT TO GLOBAL STATE
+  // We use the global state instead of local useState so messages survive navigation
+  const { chatHistory, setChatHistory } = useGlobalState();
+  
+  // Aliases to keep the rest of the logic identical
+  const messages = chatHistory;
+  const setMessages = setChatHistory;
+
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
@@ -32,18 +31,36 @@ const Chat = () => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    const userMessage = input.trim();
+    const userMessageContent = input.trim();
+    const userMessageObject = { role: "user" as const, content: userMessageContent };
+
     setInput("");
-    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
+    
+    // Optimistically update UI
+    setMessages((prev) => [...prev, userMessageObject]);
     setIsLoading(true);
 
     try {
-      const result = await sendChatMessage(userMessage, userId);
+      // 1. Define what the API response looks like
+      interface ChatApiResponse {
+        response: string;
+        sources?: Array<{
+          title: string;
+          snippet: string;
+          date: string;
+        }>;
+      }
+
+      // 2. Cast the result to that type
+      const result = (await sendChatMessage(userMessageContent, userId)) as ChatApiResponse;
+      
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
           content: result.response,
+          // Map sources if they exist, otherwise empty array
+          sources: result.sources || [] 
         },
       ]);
     } catch (error) {
@@ -60,7 +77,8 @@ const Chat = () => {
     setIsClearing(true);
     try {
       await clearChatSession(userId);
-      setMessages([]);
+      // Clearing the global state updates it for all pages
+      setMessages([]); 
       toast.success("Chat cleared");
     } catch (error) {
       console.error("Error clearing chat:", error);
@@ -81,7 +99,7 @@ const Chat = () => {
               The <span className="text-primary">deNoiser</span>
             </h1>
             <p className="text-sm text-muted-foreground">
-              Your AI assistant for startup ecosystem insights
+              Your AI assistant for entrepreneurship intelligence
             </p>
           </div>
         </div>
@@ -136,6 +154,7 @@ const Chat = () => {
                     </div>
                   </div>
 
+                  {/* Source Cards */}
                   {message.sources && message.sources.length > 0 && (
                     <div className="ml-11 space-y-2">
                       <p className="text-xs font-semibold text-muted-foreground">Sources:</p>
@@ -156,6 +175,7 @@ const Chat = () => {
                   )}
                 </div>
               ))}
+              {/* Loading Indicator */}
               {isLoading && (
                 <div className="flex justify-start">
                   <img src={foxImage} alt="deNoiser" className="w-8 h-8 object-contain mr-3 mt-1" />
@@ -176,7 +196,7 @@ const Chat = () => {
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask the deNoiser anything about the startup ecosystem..."
+              placeholder="What's on your mind? Type here..."
               disabled={isLoading}
               className="flex-1 h-12 text-base"
             />

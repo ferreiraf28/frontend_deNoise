@@ -8,19 +8,19 @@ import foxImage from "@/assets/fox.png";
 const features = [
   {
     title: "Conversational Agent",
-    description: "Ask questions and get intelligent answers powered by our RAG pipeline with source citations.",
+    description: "Ask questions to the deNoiser and get intelligent answers on entrepreneurship news.",
     icon: MessageSquare,
     link: "/chat",
   },
   {
     title: "Report Generator",
-    description: "Generate personalized daily or weekly reports tailored to your interests and focus areas.",
+    description: "Generate personalized daily, weekly or monthly reports tailored to your interests and focus areas.",
     icon: FileText,
     link: "/report",
   },
   {
     title: "Podcast Generator",
-    description: "Transform curated news into engaging audio podcasts with custom instructions and themes.",
+    description: "Transform curated news into engaging audio podcasts with custom instructions and structure.",
     icon: Mic,
     link: "/podcast",
   },
@@ -37,7 +37,7 @@ const Home = () => {
           <div className="text-center mb-16 space-y-6">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-secondary rounded-full text-sm font-medium text-foreground mb-4">
               <Sparkles className="h-4 w-4" />
-              <span>AI-Powered Startup Ecosystem Intelligence</span>
+              <span>AI-Powered Entrepreneurship News Intelligence</span>
             </div>
             <div className="flex items-center justify-center gap-6">
               <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-foreground">
@@ -54,7 +54,7 @@ const Home = () => {
               />
             </div>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Stay ahead in the startup ecosystem with AI-curated news and insights tailored specifically for
+              Stay ahead in the startup ecosystem with AI-curated news tailored specifically for
               entrepreneurship hubs, investors, and innovation enthusiasts.
             </p>
             {!user && (
@@ -101,8 +101,8 @@ const Home = () => {
               <div className="bg-background p-6 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200">
                 <h3 className="font-semibold text-foreground text-lg mb-3">Intelligent Curation</h3>
                 <p>
-                  Our advanced RAG pipeline filters through thousands of news sources to deliver only the most relevant
-                  information for your specific interests and industry focus.
+                  Our RAG pipeline filters through our news database to deliver only the most relevant
+                  information for your specific interests, industry focus and timeline specified.
                 </p>
               </div>
               <div className="bg-background p-6 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200">
@@ -120,10 +120,10 @@ const Home = () => {
                 </p>
               </div>
               <div className="bg-background p-6 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200">
-                <h3 className="font-semibold text-foreground text-lg mb-3">Always Up-to-Date</h3>
+                <h3 className="font-semibold text-foreground text-lg mb-3">Live Scraping</h3>
                 <p>
-                  Stay current with daily, weekly, or monthly digests that keep you informed without overwhelming you
-                  with noise.
+                  In case you want news from a specific website, simply provide the URL to the deNoiser and it will
+                  scrape the content live and chat about it with you.
                 </p>
               </div>
             </div>
