@@ -38,29 +38,44 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   // =========================================================================
-  // UNIFIED AUTH LOGIC
-  // Since "Sign In" and "Sign Up" behave identically in this system,
-  // we use one function to handle both.
+  // Handles both flows:
+  // 1. Login: Blocks if user MISSING.
+  // 2. Signup: Blocks if user EXISTS.
   // =========================================================================
-  const authenticateUser = async (email: string) => {
+  const authenticateUser = async (email: string, mode: 'login' | 'signup') => {
     try {
-      // 1. Generate ID
       const userId = btoa(email).replace(/[^a-zA-Z0-9]/g, '').substring(0, 20);
       
-      // 2. READ: Try to get existing data (so we don't overwrite it)
       let currentDisplayName = "";
       let currentInstructions = "";
-      
+      let userExists = false;
+
+      // 1. CHECK EXISTENCE (Read from DB)
       try {
         const existingProfile = await getUserInstructions(userId);
+        // API returned 200 OK -> User Exists
+        userExists = true;
         currentDisplayName = existingProfile.display_name || "";
         currentInstructions = existingProfile.instructions || "";
       } catch (err) {
-        // If 404 (User doesn't exist), that's fine. We stick with empty strings.
+        // API returned 404 (or other error) -> User Missing
+        userExists = false;
       }
 
-      // 3. WRITE: Always sync to DB immediately.
-      // This ensures the user record exists, whether it's their 1st or 100th login.
+      // 2. LOGIC GATES
+      
+      // Case A: User tries to SIGN UP but already exists -> BLOCK
+      if (mode === 'signup' && userExists) {
+        return { error: new Error("Account already exists. Please sign in.") };
+      }
+
+      // Case B: User tries to LOG IN but doesn't exist -> BLOCK
+      if (mode === 'login' && !userExists) {
+        return { error: new Error("Account not found. Please sign up first.") };
+      }
+
+      // 3. WRITE TO DB (Sync)
+      // This runs for new valid signups OR existing valid logins (to keep data fresh)
       await syncUserProfile({
         user_id: userId,
         email: email,
@@ -68,7 +83,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         system_instructions: currentInstructions
       });
 
-      // 4. Update Local State
+      // 4. UPDATE LOCAL STATE
       const newUser: User = {
         id: userId,
         email,
@@ -86,13 +101,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Both functions now just call the unified logic
   const signIn = async (email: string, password: string) => {
-    return authenticateUser(email);
+    return authenticateUser(email, 'login');
   };
 
   const signUp = async (email: string, password: string) => {
-    return authenticateUser(email);
+    return authenticateUser(email, 'signup');
   };
 
   const signOut = async () => {
