@@ -90,7 +90,6 @@ const Podcast = () => {
 
   const handleLoadedMetadata = () => {
     if (audioRef.current) {
-      // Basic check, but formatTime does the heavy lifting for display
       setDuration(audioRef.current.duration);
     }
   };
@@ -102,9 +101,7 @@ const Podcast = () => {
     }
   };
 
-  // --- UPDATED FUNCTION ---
   const formatTime = (time: number) => {
-    // Added check for !isFinite(time) to catch Infinity and prevent "Infinity:NaN"
     if (!time || isNaN(time) || !isFinite(time)) return "0:00";
     
     const minutes = Math.floor(time / 60);
