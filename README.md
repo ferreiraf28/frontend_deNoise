@@ -8,18 +8,26 @@ This README's purpose is to add some extra notes specifically in our frontend's 
 
 To briefly explain the architecture of the frontend implemented we'll state the main purpose of the files that were the main focus to achieve our desired frontend:
 
-** Main pages in the UI **: These files handle the UI experience in all the main pages in our frontend.
+### Main pages in the UI: 
+These files handle the UI experience in all the main pages in our frontend.
 
 src/pages/Auth.tsx - Log-in and Sign-up pages
+
 src/pages/Chat.tsx - Conversational agent page
+
 src/pages/Home.tsx - Landing page of our app
+
 src/pages/Podcast.tsx - Podcast feature page
+
 src/pages/Report.tsx - Report feature page
 
-** Other important files **: These files ensure that the orchestration between all pages is smooth, as well as the connection with our FastAPI Backend.
+### Other important files: 
+These files ensure that the orchestration between all pages is smooth, as well as the connection with our FastAPI Backend.
 
 src/context/GlobalStateContext.tsx - Manages global state for chat history, report data, and podcast data (when to clear/refresh the UI state)
+
 src/hooks/useAuth.tsx - Handles the authentication and login/signup logic for the app
+
 src/services/api.ts - API service layer for FastAPI backend
 
 ## How to run the frontend locally?
