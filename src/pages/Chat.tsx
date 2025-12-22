@@ -9,15 +9,14 @@ import { sendChatMessage, clearChatSession } from "@/services/api";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import foxImage from "@/assets/fox.png";
+// 1. IMPORT REACT-MARKDOWN
+import ReactMarkdown from "react-markdown";
 
 const Chat = () => {
   const { user } = useAuth();
 
-  // 1. CONNECT TO GLOBAL STATE
-  // We use the global state instead of local useState so messages survive navigation
   const { chatHistory, setChatHistory } = useGlobalState();
   
-  // Aliases to keep the rest of the logic identical
   const messages = chatHistory;
   const setMessages = setChatHistory;
 
@@ -25,7 +24,8 @@ const Chat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
 
-  const userId = user?.id || "anonymous";
+  // Using empty string for anonymous users to skip DB lookup in backend
+  const userId = user?.id || "";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,12 +36,10 @@ const Chat = () => {
 
     setInput("");
     
-    // Optimistically update UI
     setMessages((prev) => [...prev, userMessageObject]);
     setIsLoading(true);
 
     try {
-      // 1. Define what the API response looks like
       interface ChatApiResponse {
         response: string;
         sources?: Array<{
@@ -51,7 +49,6 @@ const Chat = () => {
         }>;
       }
 
-      // 2. Cast the result to that type
       const result = (await sendChatMessage(userMessageContent, userId)) as ChatApiResponse;
       
       setMessages((prev) => [
@@ -59,7 +56,6 @@ const Chat = () => {
         {
           role: "assistant",
           content: result.response,
-          // Map sources if they exist, otherwise empty array
           sources: result.sources || [] 
         },
       ]);
@@ -77,7 +73,6 @@ const Chat = () => {
     setIsClearing(true);
     try {
       await clearChatSession(userId);
-      // Clearing the global state updates it for all pages
       setMessages([]); 
       toast.success("Chat cleared");
     } catch (error) {
@@ -90,7 +85,6 @@ const Chat = () => {
 
   return (
     <div className="h-[calc(100vh-3.5rem)] bg-background flex flex-col">
-      {/* Chat Header */}
       <div className="border-b bg-muted/30 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <img src={foxImage} alt="deNoiser" className="w-10 h-10 object-contain" />
@@ -119,7 +113,6 @@ const Chat = () => {
         </Button>
       </div>
 
-      {/* Messages Area */}
       <ScrollArea className="flex-1 px-4">
         <div className="max-w-4xl mx-auto py-6">
           {messages.length === 0 ? (
@@ -150,11 +143,31 @@ const Chat = () => {
                           : "bg-muted text-foreground"
                       }`}
                     >
-                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                      {/* 2. WRAP CONTENT IN REACT-MARKDOWN 
+                         I added a 'prose' class concept via standard CSS logic to ensure
+                         lists and bold text inherit styles correctly inside the chat bubble.
+                      */}
+                      <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                        {message.role === "assistant" ? (
+                          <ReactMarkdown 
+                            components={{
+                              // Optional: Override specific elements to match your styling needs perfectly
+                              strong: ({node, ...props}) => <span className="font-bold" {...props} />,
+                              ul: ({node, ...props}) => <ul className="list-disc pl-4 my-2" {...props} />,
+                              ol: ({node, ...props}) => <ol className="list-decimal pl-4 my-2" {...props} />,
+                              li: ({node, ...props}) => <li className="mb-1" {...props} />,
+                              p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                            }}
+                          >
+                            {message.content}
+                          </ReactMarkdown>
+                        ) : (
+                          message.content
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Source Cards */}
                   {message.sources && message.sources.length > 0 && (
                     <div className="ml-11 space-y-2">
                       <p className="text-xs font-semibold text-muted-foreground">Sources:</p>
@@ -175,7 +188,6 @@ const Chat = () => {
                   )}
                 </div>
               ))}
-              {/* Loading Indicator */}
               {isLoading && (
                 <div className="flex justify-start">
                   <img src={foxImage} alt="deNoiser" className="w-8 h-8 object-contain mr-3 mt-1" />
@@ -189,7 +201,6 @@ const Chat = () => {
         </div>
       </ScrollArea>
 
-      {/* Input Area */}
       <div className="border-t bg-background p-4">
         <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
           <div className="flex gap-3">
