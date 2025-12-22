@@ -1,3 +1,5 @@
+// Manages global state for chat history, report data, and podcast data (when to clear/refresh the UI state)
+
 import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { useAuth } from "@/hooks/useAuth";
 import { clearChatSession } from "@/services/api"; 
@@ -36,7 +38,7 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
   const [reportData, setReportData] = useState<{ content: string; generatedAt: string } | null>(null);
   const [podcastData, setPodcastData] = useState<{ audioUrl: string | null }>({ audioUrl: null });
 
-  // --- SESSION SYNC LOGIC ---
+  // SESSION SYNC LOGIC
   useEffect(() => {
     const currentUserId = user?.id;
     const previousUserId = lastUserIdRef.current;
@@ -55,7 +57,7 @@ export const GlobalStateProvider = ({ children }: { children: ReactNode }) => {
 
     // SCENARIO 2: NEW SESSION (Login OR Refresh)
     // We have a user now. Since our local UI state (chatHistory) initialized as empty,
-    // we must enforce that the backend is also empty.
+    // we must enforce that the backend session is also empty.
     if (currentUserId) {
        // We only clear if the ID actually changed OR if it's the first load (ref is null)
        // This prevents double-clearing if the component just re-renders.

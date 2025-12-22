@@ -1,12 +1,8 @@
-// API service layer for deNoise FastAPI backend
-// Configure this URL for your Render deployment
+// API service layer for FastAPI backend
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
-// ============================================================================
-// Types
-// ============================================================================
-
+// Object Interfaces
 export interface ChatRequest {
   prompt: string;
   user_id: string;
@@ -64,10 +60,8 @@ export interface HealthResponse {
   timestamp: string;
 }
 
-// ============================================================================
-// Helper Functions
-// ============================================================================
 
+// Helper Functions
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ detail: "Unknown error" }));
@@ -76,19 +70,15 @@ async function handleResponse<T>(response: Response): Promise<T> {
   return response.json();
 }
 
-// ============================================================================
-// Health Check
-// ============================================================================
 
+// Health Check
 export async function checkHealth(): Promise<HealthResponse> {
   const response = await fetch(`${API_BASE_URL}/health`);
   return handleResponse<HealthResponse>(response);
 }
 
-// ============================================================================
-// Chat API
-// ============================================================================
 
+// Chat API
 export async function sendChatMessage(prompt: string, userId: string): Promise<ChatResponse> {
   const response = await fetch(`${API_BASE_URL}/api/chat`, {
     method: "POST",
@@ -107,10 +97,8 @@ export async function clearChatSession(userId: string): Promise<{ status: string
   return handleResponse<{ status: string; message: string }>(response);
 }
 
-// ============================================================================
-// Report API
-// ============================================================================
 
+// Report API
 export async function generateReport(request: ReportRequest): Promise<ReportResponse> {
   const response = await fetch(`${API_BASE_URL}/api/report`, {
     method: "POST",
@@ -120,10 +108,8 @@ export async function generateReport(request: ReportRequest): Promise<ReportResp
   return handleResponse<ReportResponse>(response);
 }
 
-// ============================================================================
-// Podcast API
-// ============================================================================
 
+// Podcast API
 export async function generatePodcast(request: PodcastRequest): Promise<PodcastResponse> {
   const response = await fetch(`${API_BASE_URL}/api/podcast/generate`, {
     method: "POST",
@@ -133,17 +119,14 @@ export async function generatePodcast(request: PodcastRequest): Promise<PodcastR
   return handleResponse<PodcastResponse>(response);
 }
 
-// ============================================================================
-// User Profile API
-// ============================================================================
 
+// User Profile API
 export async function getUserInstructions(userId: string): Promise<ShortUserProfileResponse> {
   const response = await fetch(`${API_BASE_URL}/api/user/${userId}/instructions`, {
     method: "GET",
     headers: { "Content-Type": "application/json" },
   });
 
-  // Now it returns the full object { user_id, instructions, display_name }
   return handleResponse<ShortUserProfileResponse>(response);
 }
 

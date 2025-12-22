@@ -1,3 +1,5 @@
+// UI page for the report generation feature
+
 import { useState, useRef } from "react";
 import { useGlobalState } from "@/context/GlobalStateContext";
 import { FileText, Loader2, Download } from "lucide-react";
@@ -207,7 +209,7 @@ const Report = () => {
                           h1: ({...props}) => <h1 className="text-3xl font-bold mt-6 mb-4 text-primary" {...props} />,
                           // H2 ( ## Section )
                           h2: ({...props}) => <h2 className="text-2xl font-semibold mt-6 mb-3 text-foreground border-b pb-2" {...props} />,
-                          // H3 ( ### Subsection / Key Takeaways ) -> This fixes your specific issue
+                          // H3 ( ### Subsection )
                           h3: ({...props}) => <h3 className="text-xl font-bold mt-5 mb-2 text-foreground" {...props} />,
                           // Bold Text ( **text** )
                           strong: ({...props}) => <strong className="font-bold text-foreground" {...props} />,

@@ -1,3 +1,5 @@
+// UI page for the main chat interface with the conversational agent
+
 import { useState } from "react";
 import { useGlobalState } from "@/context/GlobalStateContext";
 import { Send, Loader2, Trash2 } from "lucide-react";
@@ -9,7 +11,6 @@ import { sendChatMessage, clearChatSession } from "@/services/api";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import foxImage from "@/assets/fox.png";
-// 1. IMPORT REACT-MARKDOWN
 import ReactMarkdown from "react-markdown";
 
 const Chat = () => {
@@ -24,7 +25,6 @@ const Chat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
 
-  // Using empty string for anonymous users to skip DB lookup in backend
   const userId = user?.id || "";
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -143,15 +143,10 @@ const Chat = () => {
                           : "bg-muted text-foreground"
                       }`}
                     >
-                      {/* 2. WRAP CONTENT IN REACT-MARKDOWN 
-                         I added a 'prose' class concept via standard CSS logic to ensure
-                         lists and bold text inherit styles correctly inside the chat bubble.
-                      */}
                       <div className="text-sm leading-relaxed whitespace-pre-wrap">
                         {message.role === "assistant" ? (
                           <ReactMarkdown 
                             components={{
-                              // Optional: Override specific elements to match your styling needs perfectly
                               strong: ({node, ...props}) => <span className="font-bold" {...props} />,
                               ul: ({node, ...props}) => <ul className="list-disc pl-4 my-2" {...props} />,
                               ol: ({node, ...props}) => <ol className="list-decimal pl-4 my-2" {...props} />,

@@ -1,3 +1,5 @@
+// UI page for the podcast generation feature
+
 import { useState, useRef } from "react";
 import { Mic, Loader2, Play, Pause, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -56,11 +58,9 @@ const Podcast = () => {
     }
   };
 
-  // --- NEW DOWNLOAD FUNCTION ---
   const handleDownloadMp3 = () => {
     if (!audioUrl) return;
 
-    // Create a temporary link element to trigger the download
     const link = document.createElement("a");
     link.href = audioUrl;
     link.download = `denoised_podcast_${new Date().toISOString().split('T')[0]}.mp3`;
@@ -90,6 +90,7 @@ const Podcast = () => {
 
   const handleLoadedMetadata = () => {
     if (audioRef.current) {
+      // Basic check, but formatTime does the heavy lifting for display
       setDuration(audioRef.current.duration);
     }
   };
@@ -101,8 +102,11 @@ const Podcast = () => {
     }
   };
 
+  // --- UPDATED FUNCTION ---
   const formatTime = (time: number) => {
-    if (!time || isNaN(time)) return "0:00";
+    // Added check for !isFinite(time) to catch Infinity and prevent "Infinity:NaN"
+    if (!time || isNaN(time) || !isFinite(time)) return "0:00";
+    
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
@@ -198,7 +202,6 @@ const Podcast = () => {
 
           {/* Audio Player */}
           <Card className="lg:col-span-2 shadow-soft border">
-            {/* UPDATED HEADER: Matches Report.tsx Layout */}
             <CardHeader className="bg-muted/30 border-b">
               <div className="flex items-center justify-between">
                 <div>
@@ -207,8 +210,8 @@ const Podcast = () => {
                     {audioUrl ? "Your podcast is ready to play" : "Your podcast will appear here"}
                   </CardDescription>
                 </div>
-                
-                {/* Download Button - Identical styling to Report Export Button */}
+
+                {/* Download Button */}
                 {audioUrl && (
                   <Button variant="outline" size="sm" onClick={handleDownloadMp3}>
                     <Download className="h-4 w-4 mr-2" />
@@ -240,7 +243,7 @@ const Podcast = () => {
 
                     <Slider
                       value={[currentTime]}
-                      max={duration || 100}
+                      max={duration && isFinite(duration) ? duration : 100} 
                       step={1}
                       onValueChange={handleSeek}
                       className="cursor-pointer"

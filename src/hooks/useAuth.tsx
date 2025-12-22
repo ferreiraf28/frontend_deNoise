@@ -1,3 +1,7 @@
+// Handles the authentication and login/signup logic for the app:
+// 1. Login: Blocks if user MISSING.
+// 2. Signup: Blocks if user EXISTS.
+
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { syncUserProfile, getUserInstructions } from "@/services/api";
 
@@ -37,11 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(false);
   }, []);
 
-  // =========================================================================
-  // Handles both flows:
-  // 1. Login: Blocks if user MISSING.
-  // 2. Signup: Blocks if user EXISTS.
-  // =========================================================================
+
   const authenticateUser = async (email: string, mode: 'login' | 'signup') => {
     try {
       const userId = btoa(email).replace(/[^a-zA-Z0-9]/g, '').substring(0, 20);

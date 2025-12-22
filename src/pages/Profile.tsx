@@ -1,3 +1,5 @@
+// UI page for the user profile page
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -19,32 +21,31 @@ const Profile = () => {
   const [systemInstructions, setSystemInstructions] = useState("");
   
   // Loading states
-  const [loading, setLoading] = useState(true); // For fetching initial data
-  const [saving, setSaving] = useState(false);  // For saving changes
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  // 1. Auth Guard: Redirect if not logged in
+  // Redirect if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/auth");
     }
   }, [user, authLoading, navigate]);
 
-  // 2. Fetch Data on Load
+  // Fetch Data on Load
   useEffect(() => {
     const fetchProfile = async () => {
       if (!user) return;
 
       try {
-        // A. Start with local defaults (fastest)
+        // Start with local defaults
         setDisplayName(user.display_name || "");
         setSystemInstructions(user.system_instructions || "");
         
-        // B. Try to fetch fresh data from Backend (CosmosDB)
+        // Try to fetch fresh data from Backend (CosmosDB)
         try {
           const data = await getUserInstructions(user.id);
           
           // Update state if we got fresh data
-          // We use || "" to ensure the input never becomes uncontrolled
           setSystemInstructions(data.instructions || "");
           setDisplayName(data.display_name || "");
           
@@ -61,13 +62,12 @@ const Profile = () => {
     fetchProfile();
   }, [user]);
 
-  // 3. Handle Save
   const handleSave = async () => {
     if (!user) return;
 
     setSaving(true);
     try {
-      // A. Update Backend
+      // Update Backend
       await syncUserProfile({ 
         user_id: user.id, 
         email: user.email, 
@@ -75,7 +75,7 @@ const Profile = () => {
         system_instructions: systemInstructions 
       });
       
-      // B. Update Local Context
+      // Update Local Context
       await updateProfile({
         display_name: displayName,
         system_instructions: systemInstructions,
@@ -90,13 +90,12 @@ const Profile = () => {
     }
   };
 
-  // 4. Handle Sign Out
+  // Handle Sign Out
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
   };
 
-  // Loading Spinner
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">

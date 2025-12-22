@@ -1,3 +1,5 @@
+// UI page for the home/landing page of the app
+
 import { Link } from "react-router-dom";
 import { MessageSquare, FileText, Mic, ArrowRight, Sparkles, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
